@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-31T16:42:56.495Z",
+ "generated": "2026-08-31T17:01:16.619Z",
  "source": "CelesTrak GP active catalog (celestrak.org), fetched daily",
  "demo": false,
  "report": [
@@ -15,8 +15,8 @@
   },
   {
    "id": "blacksky",
-   "count": 0,
-   "note": "0 matched, 0 kept"
+   "count": 15,
+   "note": "15 matched, 15 kept"
   },
   {
    "id": "loft-yam",
@@ -31,7 +31,7 @@
   {
    "id": "huskysat",
    "count": 0,
-   "note": "0 matched, 0 kept"
+   "note": "disabled"
   },
   {
    "id": "starlink",
@@ -46,12 +46,12 @@
   {
    "id": "xplore",
    "count": 0,
-   "note": "0 matched, 0 kept"
+   "note": "disabled"
   },
   {
    "id": "hubble-network",
-   "count": 0,
-   "note": "0 matched, 0 kept"
+   "count": 2,
+   "note": "2 matched, 2 kept"
   },
   {
    "id": "portal",
@@ -121,6 +121,201 @@
    "objectType": "PAY",
    "line1": "1 66303U 2025-248 26242.60855425  .00005055  00000-0  23006-3 0  9992",
    "line2": "2 66303  45.3991  80.6087 0004041 104.4640 255.6695 15.21940347 45876"
+  },
+  {
+   "name": "GLOBAL-2",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 43812,
+   "launched": "2018-12-03",
+   "objectType": "PAY",
+   "line1": "1 43812U 2018-099 26243.07919955  .00001812  00000-0  11827-3 0  9994",
+   "line2": "2 43812  97.3511 276.4779 0004036 250.8016 109.2777 15.09042032423203"
+  },
+  {
+   "name": "GLOBAL-4",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 44499,
+   "launched": "2019-08-19",
+   "objectType": "PAY",
+   "line1": "1 44499U 2019-054 26243.05041806  .00074964  00000-0  54281-3 0  9996",
+   "line2": "2 44499  45.0037 161.9575 0005728 164.3300 195.7779 15.72556779392119"
+  },
+  {
+   "name": "GLOBAL-9",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 47971,
+   "launched": "2021-03-22",
+   "objectType": "PAY",
+   "line1": "1 47971U 2021-023 26243.04516074  .00021680  00000-0  39185-3 0  9999",
+   "line2": "2 47971  44.9802 188.8957 0002621 102.1573 257.9612 15.49383544306549"
+  },
+  {
+   "name": "GLOBAL-14",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 49469,
+   "launched": "2021-11-18",
+   "objectType": "PAY",
+   "line1": "1 49469U 2021-106 26243.10656897  .00025980  00000-0  39186-3 0  9998",
+   "line2": "2 49469  42.0025 204.6961 0018308 193.0548 166.9825 15.54015387269772"
+  },
+  {
+   "name": "GLOBAL-12",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 49772,
+   "launched": "2021-12-02",
+   "objectType": "PAY",
+   "line1": "1 49772U 2021-115 26243.04218678  .00035108  00000-0  46576-3 0  9993",
+   "line2": "2 49772  53.1946  43.4356 0000891 255.5679 104.5236 15.57938276267550"
+  },
+  {
+   "name": "GLOBAL-13",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 49773,
+   "launched": "2021-12-02",
+   "objectType": "PAY",
+   "line1": "1 49773U 2021-115 26243.10737828  .00019262  00000-0  36132-3 0  9994",
+   "line2": "2 49773  53.1963  57.7160 0001971  38.7503 321.3648 15.48684366267361"
+  },
+  {
+   "name": "GLOBAL-17",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 49949,
+   "launched": "2021-12-09",
+   "objectType": "PAY",
+   "line1": "1 49949U 2021-120 26242.63290660  .00032056  00000-0  44709-3 0  9995",
+   "line2": "2 49949  41.9952 324.4171 0015162  55.1850 305.0420 15.56118474266480"
+  },
+  {
+   "name": "GLOBAL-16",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 49950,
+   "launched": "2021-12-09",
+   "objectType": "PAY",
+   "line1": "1 49950U 2021-120 26242.62763822  .00026695  00000-0  41000-3 0  9994",
+   "line2": "2 49950  41.9958 329.7108 0013403  44.0223 316.1687 15.53597210266410"
+  },
+  {
+   "name": "GLOBAL-18",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 52196,
+   "launched": "2022-04-02",
+   "objectType": "PAY",
+   "line1": "1 52196U 2022-034 26243.03627847  .00017666  00000-0  32828-3 0  9993",
+   "line2": "2 52196  52.9795 258.1874 0004528 115.8291 244.3183 15.49008702248558"
+  },
+  {
+   "name": "GLOBAL-19",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 55982,
+   "launched": "2023-03-24",
+   "objectType": "PAY",
+   "line1": "1 55982U 2023-041 26242.70340759  .00012596  00000-0  33313-3 0  9992",
+   "line2": "2 55982  42.0006 127.2349 0005695 149.7071 210.4098 15.38239005193402"
+  },
+  {
+   "name": "GLOBAL-5",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 55983,
+   "launched": "2023-03-24",
+   "objectType": "PAY",
+   "line1": "1 55983U 2023-041 26242.93257876  .00011595  00000-0  30756-3 0  9991",
+   "line2": "2 55983  41.9999 125.4440 0006028 159.4173 200.6910 15.38207710193442"
+  },
+  {
+   "name": "GLOBAL-31",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 63027,
+   "launched": "2025-02-18",
+   "objectType": "PAY",
+   "line1": "1 63027U 2025-033 26242.77545676  .00013627  00000-0  35274-3 0  9990",
+   "line2": "2 63027  58.9999  14.6674 0014408  78.3180 281.9512 15.39324652 85800"
+  },
+  {
+   "name": "GLOBAL-32",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 64231,
+   "launched": "2025-06-02",
+   "objectType": "PAY",
+   "line1": "1 64231U 2025-118 26243.05662963  .00002105  00000-0  64714-4 0  9994",
+   "line2": "2 64231  58.9906 189.8738 0010843  68.6739 291.5493 15.38080209 69761"
+  },
+  {
+   "name": "GLOBAL-33",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 66554,
+   "launched": "2025-11-20",
+   "objectType": "PAY",
+   "line1": "1 66554U 2025-267 26242.61828505  .00012599  00000-0  33381-3 0  9999",
+   "line2": "2 66554  42.0203 342.7806 0009121  43.3080 316.8475 15.38163777 43504"
+  },
+  {
+   "name": "GLOBAL-34",
+   "operator": "BlackSky",
+   "built": "Tukwila, WA",
+   "kind": "Sub-meter Earth imaging",
+   "cls": "imaging",
+   "verified": false,
+   "norad": 68098,
+   "launched": "2026-03-05",
+   "objectType": "PAY",
+   "line1": "1 68098U 2026-043 26243.00186884  .00009540  00000-0  29193-3 0  9996",
+   "line2": "2 68098  42.0214 147.7750 0000664 103.9486 256.1426 15.33904247 27311"
   },
   {
    "name": "YAM-3",
@@ -2513,6 +2708,32 @@
    "objectType": "PAY",
    "line1": "1 69785U 2026-151 26242.95950722  .00001152  00000-0  18012-3 0  9992",
    "line2": "2 69785  51.8997 322.5301 0002038  82.7927 277.3267 14.79952786  9090"
+  },
+  {
+   "name": "HUBBLE 6",
+   "operator": "Hubble Network",
+   "built": "Seattle, WA",
+   "kind": "Bluetooth-from-orbit relay",
+   "cls": "relay",
+   "verified": false,
+   "norad": 64562,
+   "launched": "2025-06-23",
+   "objectType": "PAY",
+   "line1": "1 64562U 2025-135 26243.08372178  .00001207  00000-0  11943-3 0  9996",
+   "line2": "2 64562  97.7805 356.4700 0001366 102.9281 257.2091 14.93715934 65053"
+  },
+  {
+   "name": "HUBBLE 7",
+   "operator": "Hubble Network",
+   "built": "Seattle, WA",
+   "kind": "Bluetooth-from-orbit relay",
+   "cls": "relay",
+   "verified": false,
+   "norad": 64592,
+   "launched": "2025-06-23",
+   "objectType": "PAY",
+   "line1": "1 64592U 2025-135 26243.11744691  .00001321  00000-0  13036-3 0  9998",
+   "line2": "2 64592  97.7811 357.0268 0004337  97.4794 262.6918 14.93671565 65090"
   }
  ]
 }
