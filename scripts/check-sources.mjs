@@ -50,7 +50,10 @@ for (const s of SOURCES) {
   process.stdout.write(`  ${s.name.padEnd(28)}`);
   const t0 = Date.now();
   try {
-    const res = await fetch(s.url, { headers: { 'User-Agent': UA } });
+    const res = await fetch(s.url, {
+      headers: { 'User-Agent': UA, 'Accept': '*/*' },
+      redirect: 'follow'
+    });
     const ms = Date.now() - t0;
     if (!res.ok) { console.log(`HTTP ${res.status}  (${ms}ms)`); failures++; continue; }
     const body = await res.text();
@@ -62,8 +65,25 @@ for (const s of SOURCES) {
     console.log(`  ${''.padEnd(28)}${detail}`);
   } catch (err) {
     failures++;
-    console.log(`FAILED  ${err.message}`);
+    // 'fetch failed' is a wrapper; the cause underneath names the real problem
+    const cause = err.cause ? ` <- ${err.cause.code || ''} ${err.cause.message || ''}`.trim() : '';
+    console.log(`FAILED  ${err.message}${cause}`);
     console.log(`  ${''.padEnd(28)}expected: ${s.expect}`);
+
+    // Control: retry with a plain browser UA. If this succeeds, our UA is the
+    // problem. If it fails the same way, the address is being blocked.
+    try {
+      const alt = await fetch(s.url, { headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
+                      '(KHTML, like Gecko) Chrome/125.0 Safari/537.36',
+        'Accept': 'application/json,text/plain,*/*'
+      }});
+      console.log(`  ${''.padEnd(28)}control with a browser User-Agent: HTTP ${alt.status}` +
+        (alt.ok ? '  <-- OUR USER-AGENT IS BEING REFUSED' : '  <-- blocked regardless of User-Agent'));
+    } catch (e2) {
+      const c2 = e2.cause ? ` (${e2.cause.code || e2.cause.message})` : '';
+      console.log(`  ${''.padEnd(28)}control also failed${c2}  <-- network level, not User-Agent`);
+    }
   }
 }
 
