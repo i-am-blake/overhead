@@ -18,25 +18,29 @@ const UA = 'overhead/1.0 (+https://github.com/i-am-blake/overhead)';
 
 const SOURCES = [
   { name: 'CelesTrak GP (OMM/JSON)',
-    url: 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=json',
+    url: 'https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=json',
     expect: 'JSON array of OMM records',
-    check: t => { const j = JSON.parse(t); return Array.isArray(j) && j.length
-      ? `${j.length} objects, first is ${j[0].OBJECT_NAME} (NORAD ${j[0].NORAD_CAT_ID})`
-      : 'parsed but empty'; } },
+    check: t => { const j = JSON.parse(t); if (!Array.isArray(j) || !j.length) return 'parsed but empty';
+      const need = ['OBJECT_NAME','NORAD_CAT_ID','EPOCH','MEAN_MOTION','ECCENTRICITY','INCLINATION',
+                    'RA_OF_ASC_NODE','ARG_OF_PERICENTER','MEAN_ANOMALY','BSTAR'].filter(k => !(k in j[0]));
+      return need.length ? `MISSING FIELDS: ${need.join(', ')}`
+        : `sample object ${j[0].OBJECT_NAME}, all OMM fields present`; } },
   { name: 'CelesTrak SATCAT (CSV)',
-    url: 'https://celestrak.org/satcat/records.php?GROUP=active&FORMAT=CSV',
+    url: 'https://celestrak.org/satcat/records.php?CATNR=25544&FORMAT=CSV',
     expect: 'CSV with NORAD_CAT_ID and LAUNCH_DATE',
     check: t => { const h = t.split(/\r?\n/)[0].split(',').map(s => s.trim());
       const need = ['NORAD_CAT_ID','LAUNCH_DATE','OBJECT_TYPE'].filter(k => !h.includes(k));
       return need.length ? `MISSING COLUMNS: ${need.join(', ')}` : `${h.length} columns, all expected fields present`; } },
   { name: 'GCAT organizations',
     url: 'https://planet4589.org/space/gcat/tsv/tables/orgs.tsv',
+    rangeBytes: 4000,
     expect: 'TSV with Location, Latitude, Longitude',
     check: t => { const h = t.split('\n')[0].replace(/^#/,'').split('\t').map(s => s.trim());
       const need = ['Code','Name','Location','Latitude','Longitude'].filter(k => !h.includes(k));
       return need.length ? `MISSING COLUMNS: ${need.join(', ')}` : `${h.length} columns, all expected fields present`; } },
   { name: 'GCAT satellite catalog',
     url: 'https://planet4589.org/space/gcat/tsv/cat/satcat.tsv',
+    rangeBytes: 4000,
     expect: 'TSV with Satcat and Manufacturer',
     check: t => { const h = t.split('\n')[0].replace(/^#/,'').split('\t').map(s => s.trim());
       const need = ['Satcat','Name','Manufacturer'].filter(k => !h.includes(k));
@@ -50,12 +54,11 @@ for (const s of SOURCES) {
   process.stdout.write(`  ${s.name.padEnd(28)}`);
   const t0 = Date.now();
   try {
-    const res = await fetch(s.url, {
-      headers: { 'User-Agent': UA, 'Accept': '*/*' },
-      redirect: 'follow'
-    });
+    const headers = { 'User-Agent': UA, 'Accept': '*/*' };
+    if (s.rangeBytes) headers['Range'] = `bytes=0-${s.rangeBytes}`;
+    const res = await fetch(s.url, { headers, redirect: 'follow' });
     const ms = Date.now() - t0;
-    if (!res.ok) { console.log(`HTTP ${res.status}  (${ms}ms)`); failures++; continue; }
+    if (!res.ok && res.status !== 206) { console.log(`HTTP ${res.status}  (${ms}ms)`); failures++; continue; }
     const body = await res.text();
     let detail;
     try { detail = s.check(body); } catch (e) { detail = `unreadable: ${e.message}`; }
