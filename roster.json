@@ -118,13 +118,13 @@
       "built": "Seattle, WA",
       "kind": "Student-built cubesat",
       "limit": 4,
-      "verify": "CORRECTED 2026-08-31 from GCAT: HuskySat-1 IS on orbit as NORAD 45119, catalogued 'HuskySat-OSCAR 107' \u2014 an amateur-radio designation the roster never searched. GCAT also lists SOC-i, a second UW spacecraft with no NORAD id yet. Built by students in Seattle.",
+      "verify": "CONFIRMED ABSENT from the CelesTrak active catalog, 2026-08-31. GCAT records the build, so the Washington attribution is sound \u2014 the spacecraft is simply no longer on orbit or no longer tracked as active. Correctly excluded under 'currently operational'. HuskySat-1 (NORAD 45119, 'HuskySat-OSCAR 107') launched Nov 2019; roughly six years is a normal life for a cubesat at that altitude. UW's SOC-i has no NORAD id in GCAT at all.",
       "class": "cubesat",
       "basis": "Built by students at the University of Washington, Seattle.",
       "source_url": "",
       "verified_by": "",
       "verified_on": "",
-      "enabled": true,
+      "enabled": false,
       "ids": [
         45119
       ]
@@ -204,13 +204,13 @@
     },
     {
       "id": "blue-origin",
-      "enabled": true,
+      "enabled": false,
       "match": "BLUE RING",
       "operator": "Blue Origin",
       "built": "Kent, WA",
       "kind": "Orbital transfer and broadband",
       "limit": 5,
-      "verify": "CONFIRMED 2026-08-31 from GCAT: Blue Ring Pathfinder, NORAD 62720, launched 2025-01-16. Blue Origin LLC is a GCAT organization in Kent, WA. This is their only catalogued on-orbit object \u2014 the Kent factory's output is otherwise launch vehicles.",
+      "verify": "CONFIRMED ABSENT from the CelesTrak active catalog, 2026-08-31. GCAT records the build, so the Washington attribution is sound \u2014 the spacecraft is simply no longer on orbit or no longer tracked as active. Correctly excluded under 'currently operational'. Blue Ring Pathfinder (NORAD 62720) launched Jan 2025 and is already absent \u2014 worth asking Blue Origin directly, since 19 months is short. Kent's output is otherwise launch vehicles, which this map does not track.",
       "class": "tug",
       "basis": "Blue Origin headquartered in Kent, WA.",
       "source_url": "",
@@ -250,11 +250,12 @@
         40742,
         43130
       ],
-      "verify": "From GCAT: Arkyd-3R (40742) and Arkyd-6A (43130), Redmond. Company is defunct \u2014 confirm whether either is still on orbit before showing it.",
+      "verify": "CONFIRMED ABSENT from the CelesTrak active catalog, 2026-08-31. GCAT records the build, so the Washington attribution is sound \u2014 the spacecraft is simply no longer on orbit or no longer tracked as active. Correctly excluded under 'currently operational'. Arkyd-3R (40742) and Arkyd-6A (43130), Redmond. Planetary Resources is defunct; both have decayed.",
       "basis": "GCAT organization record, Washington operating location",
       "source_url": "",
       "verified_by": "",
-      "verified_on": ""
+      "verified_on": "",
+      "enabled": false
     },
     {
       "id": "tethers-unlimited",
@@ -269,11 +270,12 @@
         43795,
         31126
       ],
-      "verify": "From GCAT: Firmamentum (a TUI division) built OrbWeaver 1 and 2, Bothell. MAST Gadget is older. Check what survives.",
+      "verify": "CONFIRMED ABSENT from the CelesTrak active catalog, 2026-08-31. GCAT records the build, so the Washington attribution is sound \u2014 the spacecraft is simply no longer on orbit or no longer tracked as active. Correctly excluded under 'currently operational'. OrbWeaver 1 and 2 (43795, 43785) and MAST Gadget (31126), Bothell. All absent.",
       "basis": "GCAT organization record, Washington operating location",
       "source_url": "",
       "verified_by": "",
-      "verified_on": ""
+      "verified_on": "",
+      "enabled": false
     },
     {
       "id": "boeing-kent",
@@ -302,7 +304,7 @@
       "5. Multi-site production -> name the site where final integration occurs. If that is unknown, name the primary production facility and say so in 'basis'."
     ],
     "ownership_changes": "The factory is what counts, not who owns it. LeoStella's acquisition by BlackSky in Nov 2024 does not change the status of anything built in Tukwila before or after.",
-    "operational": "Present in the CelesTrak active catalog, with no DECAY_DATE and not flagged non-operational in OPS_STATUS_CODE. A spacecraft that is on orbit but dead does not count. NOTE: both fields are fetched but not yet used to filter \u2014 wire this before the claim goes on a screen.",
+    "operational": "Present in the CelesTrak active catalog. Verified in practice on 2026-08-31: seven spacecraft with sound Washington attributions in GCAT \u2014 HuskySat-1, Blue Ring Pathfinder, both Arkyds, both OrbWeavers, MAST \u2014 were all absent from the active catalog and are therefore excluded. Being Washington-built is not sufficient; the spacecraft has to still be up there. DECAY_DATE and OPS_STATUS_CODE are fetched from SATCAT and could tighten this further.",
     "evidence_standard": [
       "Each attribution needs at least one of: a company statement or press release, a regulatory filing, or a GCAT factory-level manufacturer record.",
       "Trade press alone is a lead, not a source. Record it in 'basis' and keep looking.",
