@@ -38,10 +38,20 @@ const FILES = {
   objects: `${BASE}/cat/satcat.tsv`
 };
 
-/* Washington State bounding box. Filtering on coordinates rather than on a text
-   match for ", WA" catches organizations whose location string is formatted
-   differently, and is harder to fool. Text match is kept as a cross-check. */
+/* Two filters, and BOTH must agree.
+
+   The bounding box alone leaks: Post Falls Idaho, Portland Oregon and Victoria
+   British Columbia all fall inside any rectangle covering the Olympic Peninsula.
+
+   A text match alone is far worse. GCAT writes the capital as "Washington, DC",
+   so matching the word "Washington" pulls in the Naval Research Lab, the
+   Pentagon, Orbital Sciences in Dulles and AMSAT — 139 organizations and 13,813
+   objects, almost none of them from this state.
+
+   Requiring the location to END with ", Washington" separates the state from the
+   district cleanly, because the district always writes it first. */
 const WA = { latMin: 45.50, latMax: 49.01, lonMin: -124.90, lonMax: -116.90 };
+const WA_TEXT = /,\s*Washington$/;
 
 /* ---------- TSV helpers ---------- */
 
@@ -110,13 +120,14 @@ for (const r of orgs.rows) {
   const loc = r[oLoc] || '';
   const inBox = Number.isFinite(lat) && Number.isFinite(lon) &&
     lat >= WA.latMin && lat <= WA.latMax && lon >= WA.lonMin && lon <= WA.lonMax;
-  const byText = /,\s*WA\b|Washington/i.test(loc);
-  if (!inBox && !byText) continue;
+  const byText = WA_TEXT.test(loc);
+  if (!byText) continue;                    // the district test is the decisive one
+  if (!inBox && Number.isFinite(lat)) continue;   // has coordinates but outside the state
   waOrgs.set(r[oCode], {
     code: r[oCode], name: r[oName], location: loc,
     lat: Number.isFinite(lat) ? lat : null,
     lon: Number.isFinite(lon) ? lon : null,
-    matchedBy: inBox && byText ? 'coordinates + text' : (inBox ? 'coordinates' : 'text only')
+    matchedBy: inBox ? 'coordinates + text' : 'text only (no coordinates on file)'
   });
 }
 

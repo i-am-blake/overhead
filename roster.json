@@ -118,13 +118,16 @@
       "built": "Seattle, WA",
       "kind": "Student-built cubesat",
       "limit": 4,
-      "verify": "DISABLED 2026-08-31: no HUSKYSAT in the active catalog. HuskySat-1 launched 2019 and has most likely decayed. Confirm with SATCAT DECAY_DATE before claiming it.",
+      "verify": "CORRECTED 2026-08-31 from GCAT: HuskySat-1 IS on orbit as NORAD 45119, catalogued 'HuskySat-OSCAR 107' \u2014 an amateur-radio designation the roster never searched. GCAT also lists SOC-i, a second UW spacecraft with no NORAD id yet. Built by students in Seattle.",
       "class": "cubesat",
       "basis": "Built by students at the University of Washington, Seattle.",
       "source_url": "",
       "verified_by": "",
       "verified_on": "",
-      "enabled": false
+      "enabled": true,
+      "ids": [
+        45119
+      ]
     },
     {
       "id": "starlink",
@@ -162,7 +165,7 @@
       "built": "Bellevue, WA",
       "kind": "Hyperspectral imaging",
       "limit": 5,
-      "verify": "DISABLED 2026-08-31: no XCRAFT or XPLORE object in the active catalog. Either never reached orbit, has decayed, or is catalogued under a name we do not know. Needs a NORAD ID from Xplore before this can be re-enabled.",
+      "verify": "DISABLED, twice confirmed 2026-08-31: no XCRAFT in the active catalog, and no Xplore organization in GCAT at all. Either never reached orbit or is catalogued under a name nobody has told us. Needs a NORAD ID from the company.",
       "class": "imaging",
       "basis": "Xplore reported as Bellevue, WA as of 2026 (previously Redmond).",
       "source_url": "",
@@ -201,18 +204,21 @@
     },
     {
       "id": "blue-origin",
-      "enabled": false,
-      "match": "BLUE RING|TERAWAVE",
+      "enabled": true,
+      "match": "BLUE RING",
       "operator": "Blue Origin",
       "built": "Kent, WA",
       "kind": "Orbital transfer and broadband",
-      "limit": 10,
-      "verify": "DISABLED \u2014 Blue Origin is headquartered in Kent and is the most conspicuous omission here, but I could not confirm what it currently has on orbit or how the catalog names it. Worth doing properly.",
+      "limit": 5,
+      "verify": "CONFIRMED 2026-08-31 from GCAT: Blue Ring Pathfinder, NORAD 62720, launched 2025-01-16. Blue Origin LLC is a GCAT organization in Kent, WA. This is their only catalogued on-orbit object \u2014 the Kent factory's output is otherwise launch vehicles.",
       "class": "tug",
       "basis": "Blue Origin headquartered in Kent, WA.",
       "source_url": "",
       "verified_by": "",
-      "verified_on": ""
+      "verified_on": "",
+      "ids": [
+        62720
+      ]
     },
     {
       "id": "rocket-bodies",
@@ -228,6 +234,58 @@
       "limit": 15,
       "verify": "DISABLED, but the most visually rewarding thing you could turn on. Spent upper stages tumble and flare, and are often far brighter than any satellite \u2014 much easier to actually spot. Two problems: the 'active' catalog excludes them, so this needs its own query, and a Falcon 9 second stage is not Washington-built. Decide whether this is a separate 'also up there' category rather than a WA claim.",
       "basis": "NOT a Washington-built claim. Separate category if used at all.",
+      "source_url": "",
+      "verified_by": "",
+      "verified_on": ""
+    },
+    {
+      "id": "planetary-resources",
+      "match": "^ARKYD",
+      "operator": "Planetary Resources",
+      "built": "Redmond, WA",
+      "kind": "Asteroid prospecting demonstrator",
+      "class": "imaging",
+      "limit": 4,
+      "ids": [
+        40742,
+        43130
+      ],
+      "verify": "From GCAT: Arkyd-3R (40742) and Arkyd-6A (43130), Redmond. Company is defunct \u2014 confirm whether either is still on orbit before showing it.",
+      "basis": "GCAT organization record, Washington operating location",
+      "source_url": "",
+      "verified_by": "",
+      "verified_on": ""
+    },
+    {
+      "id": "tethers-unlimited",
+      "match": "^ORBWEAVER|^MAST",
+      "operator": "Tethers Unlimited",
+      "built": "Bothell, WA",
+      "kind": "Tether and structures demonstrator",
+      "class": "cubesat",
+      "limit": 6,
+      "ids": [
+        43785,
+        43795,
+        31126
+      ],
+      "verify": "From GCAT: Firmamentum (a TUI division) built OrbWeaver 1 and 2, Bothell. MAST Gadget is older. Check what survives.",
+      "basis": "GCAT organization record, Washington operating location",
+      "source_url": "",
+      "verified_by": "",
+      "verified_on": ""
+    },
+    {
+      "id": "boeing-kent",
+      "enabled": false,
+      "match": "^(LUNAR ORBITER|USA )",
+      "operator": "Boeing",
+      "built": "Kent, WA",
+      "kind": "Historic spacecraft and upper stages",
+      "class": "sat",
+      "limit": 10,
+      "verify": "DISABLED. GCAT attributes 49 objects to Boeing Space Center Kent \u2014 including all five Lunar Orbiters. Almost all are decayed, debris, or spent IUS stages. Historically remarkable, but 'currently operational' rules nearly all of it out. Review before enabling.",
+      "basis": "GCAT organization record, Washington operating location",
       "source_url": "",
       "verified_by": "",
       "verified_on": ""
