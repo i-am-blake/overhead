@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-31T17:01:16.619Z",
+ "generated": "2026-08-31T17:15:13.552Z",
  "source": "CelesTrak GP active catalog (celestrak.org), fetched daily",
  "demo": false,
  "report": [
@@ -31,7 +31,7 @@
   {
    "id": "huskysat",
    "count": 0,
-   "note": "disabled"
+   "note": "0 matched, 0 kept"
   },
   {
    "id": "starlink",
@@ -61,10 +61,25 @@
   {
    "id": "blue-origin",
    "count": 0,
-   "note": "disabled"
+   "note": "0 matched, 0 kept"
   },
   {
    "id": "rocket-bodies",
+   "count": 0,
+   "note": "disabled"
+  },
+  {
+   "id": "planetary-resources",
+   "count": 0,
+   "note": "0 matched, 0 kept"
+  },
+  {
+   "id": "tethers-unlimited",
+   "count": 0,
+   "note": "0 matched, 0 kept"
+  },
+  {
+   "id": "boeing-kent",
    "count": 0,
    "note": "disabled"
   }
