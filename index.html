@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overhead — Seattle Space Week</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/5.0.0/satellite.min.js"></script>
+<style>
+:root{
+  --void:#04070C;
+  --deep:#080F17;
+  --deeper:#060B11;
+  --rule:#11384C;
+  --rule-soft:#0C2333;
+  --ink:#D6F3FB;
+  --dim:#6BA6BE;
+  --dimmer:#3D6C82;
+  --sodium:#FF8A1E;
+  --sodium-soft:#FF8A1E1F;
+  --ice:#22E0FF;
+  --ice-soft:#22E0FF1F;
+
+  /* ---- Type scale. Six steps, four tracking values. Every font-size and
+     letter-spacing in this file maps onto one of these; if a new value seems
+     necessary, the scale is probably wrong rather than the exception. All
+     steps are fluid, so the whole page scales together instead of two
+     components scaling and the rest staying fixed. ---- */
+  --fs-1: clamp(8.5px, .95vw, 9.5px);    /* micro caps: dome labels, table heads */
+  --fs-2: clamp(9.5px, 1.05vw, 10.5px);  /* small caps rows: top bar, counts */
+  --fs-3: clamp(9.5px, 1.15vw, 11.5px);  /* default UI: chips, key, callout */
+  --fs-4: clamp(11px, 1.35vw, 13px);     /* emphasised data: clock, times, table */
+  --fs-5: clamp(15px, 1.9vw, 19px);      /* section headings */
+  --fs-6: clamp(21px, 3.1vw, 32px);      /* page title */
+
+  --ls-1: .02em;   /* sentence text and title-case headings */
+  --ls-2: .06em;   /* default */
+  --ls-3: .12em;   /* uppercase rows */
+  --ls-4: .2em;    /* micro caps labels */
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --display:'Chakra Petch',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--void);
+  color:var(--ink);
+  font-family:var(--mono);
+  font-size:var(--fs-4);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    linear-gradient(rgba(34,224,255,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34,224,255,.045) 1px, transparent 1px),
+    radial-gradient(ellipse 130% 80% at 50% -15%, #06283A 0%, transparent 62%);
+  background-size:44px 44px, 44px 44px, auto;
+  min-height:100vh;
+}
+.wrap{max-width:940px;margin:0 auto;padding:clamp(14px,2.2vh,28px) 20px 80px}
+
+/* ---------- header ---------- */
+.topbar{
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;
+  font-size:var(--fs-2);letter-spacing:var(--ls-4);text-transform:uppercase;color:var(--dimmer);
+  white-space:nowrap;
+}
+.side{display:flex;align-items:center;gap:16px;min-width:0}
+.stacked{display:none}
+/* The rules flex to fill, so the title sits dead center regardless of how wide
+   the labels either side happen to be. */
+.side .tick{
+  flex:1 1 auto;min-width:16px;height:1px;background:var(--rule);
+  box-shadow:0 0 8px rgba(34,224,255,.25);
+}
+.brand{color:var(--dim);flex:0 0 auto}
+.signup{
+  flex:0 0 auto;color:var(--sodium);text-decoration:none;
+  border-bottom:1px solid rgba(255,138,30,.4);padding-bottom:2px;transition:.15s;
+}
+.signup:hover{color:var(--ink);border-bottom-color:var(--ink);text-shadow:0 0 12px rgba(255,138,30,.6)}
+.signup:focus-visible{outline:2px solid var(--sodium);outline-offset:3px}
+.domeclock{display:flex;justify-content:center;align-items:center;padding:10px 16px 0;min-height:36px}
+.wallclock{
+  display:flex;align-items:center;gap:10px;flex-wrap:nowrap;
+  height:26px;
+  font-variant-numeric:tabular-nums;letter-spacing:var(--ls-3);
+  font-size:var(--fs-3);text-transform:uppercase;color:var(--dimmer);
+}
+.wallclock .d{color:var(--dimmer)}
+.wallclock .t{
+  color:var(--ice);font-size:var(--fs-4);letter-spacing:var(--ls-2);
+  text-shadow:0 0 12px rgba(34,224,255,.55);
+}
+.wallclock .z{color:var(--dimmer)}
+.wallclock.ahead .t{color:var(--sodium);text-shadow:0 0 12px rgba(255,138,30,.55)}
+.wallclock.ahead .beat{background:var(--sodium);box-shadow:0 0 8px var(--sodium)}
+.wallclock .fwd{
+  color:var(--sodium);border:1px solid var(--sodium);padding:0 8px;
+  font-size:var(--fs-1);letter-spacing:var(--ls-3);height:18px;
+  display:inline-flex;align-items:center;white-space:nowrap;
+}
+.wallclock .beat{
+  width:5px;height:5px;border-radius:50%;background:var(--ice);flex:0 0 5px;
+  box-shadow:0 0 8px var(--ice);animation:beat 2s steps(1,end) infinite;
+}
+@keyframes beat{0%,49%{opacity:1}50%,100%{opacity:.15}}
+/* Zulu is the first thing to go when the row gets tight, then the rules. */
+@media (max-width:900px){ .wallclock .z{display:none} }
+@media (max-width:640px){
+  .topbar{grid-template-columns:1fr;gap:12px;justify-items:center;white-space:normal;text-align:center}
+  .side{display:none}
+  .topbar h1{order:-1}
+  .stacked{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}
+}
+h1{
+  font-family:var(--display);
+  font-weight:700;
+  text-shadow:0 0 20px rgba(34,224,255,.5), 0 0 52px rgba(34,224,255,.2);
+  font-size:var(--fs-6);
+  line-height:1;
+  /* Negative tracking suits lowercase with descenders; caps need air between
+     them, so the sign flips. Same face, same weight. */
+  letter-spacing:var(--ls-2);
+  margin:0;
+  text-align:center;
+  color:var(--ink);
+  text-transform:uppercase;
+}
+
+/* ---------- controls ---------- */
+.controls{
+  margin-top:26px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+}
+.chip{
+  font-family:var(--mono);font-size:var(--fs-3);letter-spacing:var(--ls-2);
+  background:transparent;color:var(--dim);
+  border:1px solid var(--rule);border-radius:0;
+  padding:7px 11px;cursor:pointer;transition:.15s;
+}
+.chip:hover{border-color:var(--ice);color:var(--ice);box-shadow:0 0 12px rgba(34,224,255,.3)}
+.chip[aria-pressed="true"]{background:var(--ice);color:var(--void);border-color:var(--ice);box-shadow:0 0 16px rgba(34,224,255,.45)}
+.chip:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
+.chip.hasdot{display:inline-flex;align-items:center;gap:7px}
+.chip.hasdot i{width:9px;height:9px;border-radius:2px;flex:0 0 9px;display:block}
+.chip[aria-pressed="true"] i{box-shadow:none!important;outline:1px solid rgba(4,7,12,.5)}
+
+/* ---------- dome ---------- */
+.dome-shell{
+  position:relative;
+  margin-top:clamp(16px, 2.6vh, 30px);
+  border:1px solid var(--rule);
+  box-shadow:0 0 0 1px rgba(34,224,255,.06), 0 0 44px rgba(34,224,255,.07) inset;
+  background:
+    radial-gradient(circle at 50% 42%, #14212E 0%, var(--deeper) 62%);
+  border-radius:0;
+  position:relative;
+  overflow:hidden;
+}
+.dome-head{
+  padding:4px 16px 6px;text-align:center;
+}
+.dome-head h2{
+  margin:0 auto;max-width:62ch;font-family:var(--mono);font-weight:400;font-size:var(--fs-4);
+  letter-spacing:var(--ls-1);line-height:1.55;color:var(--dim);
+}
+.dome-head h2 em{font-style:normal;color:var(--ink);font-weight:500;
+  text-shadow:0 0 14px rgba(34,224,255,.35)}
+.dome-head h2 b{color:var(--sodium);font-weight:500;
+  text-shadow:0 0 12px rgba(255,138,30,.4)}
+
+/* Reserve a fixed budget for the chrome above and below rather than a bare vh
+   fraction — the reserve is roughly constant, the viewport is not, so this grows
+   the dome far more on a big monitor without pushing the controls off a laptop. */
+svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 322px), 900px);margin-top:26px}
+.ring{fill:none;stroke:var(--rule);stroke-width:1.5;stroke-dasharray:3 5}
+.ring.horizon{stroke:var(--ice);stroke-width:2;stroke-dasharray:none;filter:url(#neon);opacity:.85}
+.spoke{stroke:var(--rule-soft);stroke-width:1;opacity:.8}
+.cardinal{font-size:var(--fs-4);font-weight:600;fill:var(--ice);letter-spacing:var(--ls-3);font-family:var(--mono)}
+.elabel{font-size:var(--fs-1);fill:var(--dimmer);font-family:var(--mono);letter-spacing:var(--ls-2)}
+.track{fill:none;stroke:var(--ice);stroke-width:1;opacity:.32}
+.track.vis{stroke:var(--sodium);opacity:.45}
+.sat{fill:var(--ice);opacity:.75}
+.sat.vis{fill:var(--sodium);opacity:1}
+.satlabel{font-size:var(--fs-1);font-weight:500;fill:var(--ink);font-family:var(--mono);letter-spacing:var(--ls-1)}
+.satlabel.vis{fill:var(--sodium)}
+.glow{fill:var(--sodium);opacity:.13}
+@keyframes breathe{0%,100%{opacity:.10}50%{opacity:.26}}
+.glow{animation:breathe 3.4s ease-in-out infinite}
+.halo{animation:breathe 2.6s ease-in-out infinite}
+.transport{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  border-top:1px solid var(--rule-soft);margin-top:12px;
+}
+.tbtn{
+  width:30px;height:30px;flex:0 0 30px;border-radius:50%;
+  border:1px solid var(--sodium);background:transparent;color:var(--sodium);
+  cursor:pointer;font-size:var(--fs-3);line-height:1;display:grid;place-items:center;transition:.15s;
+}
+.tbtn:hover{background:var(--sodium);color:var(--void)}
+/* A triangle's visual weight sits left of its bounding box, so a geometrically
+   centred play glyph reads as off-centre. Nudge it right by a hair. */
+.tbtn .gl{width:11px;height:13px}
+.tbtn[data-playing="0"] .gl{transform:translateX(1px)}
+.tbtn[data-playing="1"]{background:var(--sodium);color:var(--void)}
+.tbtn:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
+input[type=range]{
+  flex:1;-webkit-appearance:none;appearance:none;background:transparent;height:22px;cursor:pointer;
+}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--rule)}
+input[type=range]::-moz-range-track{height:2px;background:var(--rule)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+  background:var(--ink);margin-top:-5px;border:0;
+}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--ink);border:0}
+input[type=range]:focus-visible{outline:2px solid var(--sodium);outline-offset:4px}
+.tlabel{
+  font-size:var(--fs-3);color:var(--dim);letter-spacing:var(--ls-2);white-space:nowrap;
+  font-variant-numeric:tabular-nums;min-width:104px;text-align:right;
+}
+.tlabel b{color:var(--sodium);font-weight:500}
+
+.terrain{pointer-events:none}
+.terrainlabel{
+  font-size:var(--fs-1);fill:var(--ice);font-family:var(--mono);letter-spacing:var(--ls-4);opacity:.85;
+}
+.moonlabel{
+  font-size:var(--fs-1);fill:var(--ice);font-family:var(--mono);letter-spacing:var(--ls-3);opacity:.75;
+}
+.star{fill:var(--ink)}
+@keyframes twinkle{0%,100%{opacity:.10}50%{opacity:.55}}
+
+.legend{
+  padding:18px 16px 16px;border-top:1px solid var(--rule-soft);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px 28px;
+}
+.lgroup h3{
+  margin:0 0 10px;font-family:var(--mono);font-size:var(--fs-1);font-weight:400;
+  letter-spacing:var(--ls-4);text-transform:uppercase;color:var(--dimmer);
+  padding-bottom:7px;border-bottom:1px solid var(--rule-soft);
+}
+.litems{display:flex;flex-wrap:wrap;gap:9px 16px}
+.litem{
+  display:flex;align-items:center;gap:8px;
+  /* same scale as the callout row above, so the key reads as part of it */
+  font-size:var(--fs-3);
+  letter-spacing:var(--ls-1);color:var(--dim);line-height:1.3;
+}
+.litem svg{display:block;flex:0 0 auto}
+.litem .n{color:var(--dimmer);font-variant-numeric:tabular-nums}
+.swatch{
+  width:11px;height:11px;flex:0 0 11px;border-radius:2px;
+  border:1px solid rgba(4,7,12,.85);
+}
+
+@media (max-width:520px){
+  .legend{grid-template-columns:1fr;gap:16px}
+}
+
+/* ---------- callout ---------- */
+.callout{
+  display:flex;align-items:center;gap:0;flex-wrap:wrap;
+  min-height:44px;box-sizing:border-box;
+  padding:11px 16px;border-top:1px solid var(--rule-soft);
+  /* Same typographic system as the clock row above: 11.5px mono, uppercase,
+     wide tracking, tabular figures, one accented cell. */
+  font-size:var(--fs-3);
+  letter-spacing:var(--ls-3);text-transform:uppercase;
+  font-variant-numeric:tabular-nums;
+}
+.callout > *{padding:0 clamp(7px, .95vw, 12px)}
+.callout > *:first-child{padding-left:0}
+.callout .k{
+  font-size:inherit;color:var(--sodium);
+  text-shadow:0 0 10px rgba(255,138,30,.4);
+  padding:0;margin-right:clamp(7px, .95vw, 12px);white-space:nowrap;
+}
+.callout .t{
+  font-size:var(--fs-4);letter-spacing:var(--ls-2);color:var(--dim);white-space:nowrap;
+}
+.callout .rel{color:var(--dim);margin-left:7px}
+.callout .dir{
+  color:var(--dim);white-space:nowrap;border-left:1px solid var(--rule);
+}
+.callout .who{
+  flex:1 1 180px;min-width:0;color:var(--dim);letter-spacing:var(--ls-2);
+  border-left:1px solid var(--rule);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.callout .watch{
+  margin-left:auto;flex:0 0 auto;border-color:var(--sodium);color:var(--sodium);
+  white-space:nowrap;letter-spacing:var(--ls-3);text-transform:uppercase;
+  /* matches the vertical height the boxed label used to occupy */
+  height:24px;padding:0 clamp(8px, 1vw, 12px);font-size:var(--fs-3);
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+}
+/* Letter-spacing adds a trailing gap after the final character, which pushes the
+   visible text left of centre. Cancel exactly that much. */
+.callout .watch > span{margin-right:calc(-1 * var(--ls-3))}
+.gl{width:.8em;height:.95em;display:block;flex:0 0 auto}
+.callout .watch:hover{background:var(--sodium);color:var(--void);border-color:var(--sodium)}
+.callout.empty{background:none}
+.callout.empty .k{color:var(--dimmer);text-shadow:none}
+.callout.empty .t{color:var(--dim)}
+.callout .q{color:var(--dim);margin-left:7px}
+@media (max-width:730px){
+  .callout{gap:7px 0;justify-content:center;text-align:center;padding:14px 16px}
+  .callout > *{padding:0 7px}
+  .callout .k{margin-right:7px}
+  .callout .dir,.callout .who{
+    border-left:0;padding-left:0;padding-right:0;flex-basis:100%;
+  }
+  /* wrap rather than ellipsise here — there is room below, not beside */
+  .callout .who{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.5}
+  .callout .watch{margin-left:0;width:100%;justify-content:center;height:40px;margin-top:3px}
+}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover{background:#ffffff08}
+tbody tr:focus-visible{outline:2px solid var(--sodium);outline-offset:-2px}
+
+/* ---------- table ---------- */
+.sect{margin-top:56px}
+.sect-head{
+  display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;
+  border-bottom:1px solid var(--rule);padding-bottom:10px;
+}
+.sect-head h2{
+  text-shadow:0 0 18px rgba(34,224,255,.3);
+  font-family:var(--display);font-weight:600;font-size:var(--fs-5);letter-spacing:var(--ls-1);margin:0;
+}
+.sect-head .count{font-size:var(--fs-3);color:var(--dimmer);letter-spacing:var(--ls-3);text-transform:uppercase}
+
+table{width:100%;border-collapse:collapse;margin-top:4px}
+th{
+  text-align:left;font-size:var(--fs-1);letter-spacing:var(--ls-4);text-transform:uppercase;
+  color:var(--dimmer);font-weight:400;padding:14px 8px 8px;border-bottom:1px solid var(--rule-soft);
+}
+th.num,td.num{text-align:right}
+td{padding:12px 8px;border-bottom:1px solid var(--rule-soft);vertical-align:top;font-size:var(--fs-4)}
+tr.vis td.t{color:var(--sodium)}
+td.t{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:500}
+td.nm{font-weight:500}
+td.nm small{display:block;color:var(--dimmer);font-size:var(--fs-2);font-weight:400;letter-spacing:var(--ls-2);margin-top:2px}
+td.num{font-variant-numeric:tabular-nums;color:var(--dim);white-space:nowrap}
+.badge{
+  display:inline-block;font-size:var(--fs-1);letter-spacing:var(--ls-3);text-transform:uppercase;
+  border:1px solid var(--sodium);color:var(--sodium);padding:2px 5px;border-radius:0;margin-left:8px;
+  vertical-align:2px;
+}
+.arc{display:inline-block;width:34px;height:4px;background:var(--rule);border-radius:0;
+  position:relative;overflow:hidden;vertical-align:middle;margin-left:8px}
+.arc span{position:absolute;left:0;top:0;bottom:0;background:var(--ice)}
+tr.vis .arc span{background:var(--sodium)}
+
+.capnote td{
+  color:var(--dimmer);font-size:var(--fs-1);letter-spacing:var(--ls-2);
+  text-transform:uppercase;padding:14px 8px;text-align:center;
+}
+tbody tr.capnote{cursor:default}
+tbody tr.capnote:hover{background:none}
+.more{margin-top:14px}
+.more .chip{width:100%;justify-content:center;padding:10px 12px;color:var(--dim)}
+.more .chip:hover{color:var(--ice)}
+.progress{height:1px;background:var(--rule);margin-top:14px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--sodium);width:0;transition:width .2s}
+
+/* ---------- data panel ---------- */
+
+/* Hail: a transmission, not a banner. One quiet ping is the whole flourish. */
+.ping{position:relative;width:52px;height:52px;flex:0 0 52px}
+.ping span{
+  position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;
+  border-radius:50%;background:var(--sodium);
+}
+.ping i{
+  position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;
+  border:1px solid var(--sodium);border-radius:50%;opacity:0;
+  animation:ping 3.6s cubic-bezier(.2,.6,.3,1) infinite;
+}
+.ping i:nth-child(2){animation-delay:1.2s}
+.ping i:nth-child(3){animation-delay:2.4s}
+@keyframes ping{
+  0%{transform:scale(.16);opacity:.9}
+  70%{opacity:.12}
+  100%{transform:scale(1);opacity:0}
+}
+/* Ping, label and heading centre; body text does not. Centred prose gives every
+   line a different starting point, which is why both blocks read left. */
+footer .notes{
+  text-align:left;
+  display:grid;grid-template-columns:1fr;gap:20px;
+}
+footer p{
+  margin:0;color:var(--dimmer);font-size:var(--fs-4);
+  line-height:1.75;letter-spacing:var(--ls-1);
+}
+footer p b{color:var(--dim);font-weight:500}
+
+@media (max-width:620px){
+  footer{flex-direction:column;gap:14px;padding:22px 20px}
+  .ping{margin-top:0}
+}
+
+.odo{
+  position:absolute;top:15px;left:17px;z-index:2;pointer-events:none;
+  /* ch is relative to this element's own size, so the box is measured in
+     characters of the number it exists to show. Every row then justifies to
+     that one measure, giving flush left and right edges on all three. */
+  /* A self-contained scale. The captions were on --fs-1 and the box on --fs-5;
+     below ~750px the captions hit their floor while the box kept shrinking, so
+     the label overflowed. Sizing every row in em of one local root means the
+     ratios hold at any width. Floor raised to 16px so captions never drop
+     below 8px. */
+  font-size:clamp(16px, 1.9vw, 19px);
+  width:19.5ch;
+  line-height:1.4;
+  /* No panel chrome — it read as a foreign UI element sitting on the sky. The
+     shadow replaces the backing it used to have, keeping the text legible where
+     it crosses stars. */
+  text-shadow:0 1px 3px rgba(4,7,12,.9), 0 0 10px rgba(4,7,12,.7);
+}
+.odo > span{
+  display:block;text-align:justify;text-align-last:justify;
+}
+.odo .lab{
+  font-size:.5em;letter-spacing:var(--ls-2);
+  text-transform:uppercase;color:var(--dim);opacity:.8;
+}
+.odo .km sup{font-size:.55em;vertical-align:.5em;color:var(--dim);line-height:0}
+.odo .km{
+  font-size:1em;color:var(--ice);font-weight:500;
+  font-variant-numeric:tabular-nums;letter-spacing:var(--ls-1);
+  text-shadow:0 0 18px rgba(34,224,255,.45), 0 1px 3px rgba(4,7,12,.9);
+  margin:2px 0 3px;
+}
+.odo .sc{
+  font-size:.5em;color:var(--dim);
+  letter-spacing:var(--ls-2);text-transform:uppercase;
+}
+@media (max-width:900px){
+  /* in flow and centred, keeping the 19ch measure so the rows still square up */
+  .odo{position:static;margin:16px auto 0}
+}
+
+/* The two closing blocks share one treatment. The section sets its own root size
+   and the heading is exactly 2em of it, so the label-to-heading ratio holds at
+   every viewport instead of drifting between two independent clamps. */
+footer{
+  /* ping on the left, titles beside it — the label sits level with the flasher */
+  margin-top:56px;display:flex;gap:24px;align-items:flex-start;text-align:left;
+  border:1px solid var(--rule);
+  padding:30px 26px 28px;
+  background:linear-gradient(120deg,#14212E 0%,var(--deeper) 70%);
+  max-width:none;
+  font-size:var(--fs-2);
+}
+footer .ping{margin:0;flex:0 0 52px}
+
+footer h2{
+  font-family:var(--mono);font-weight:400;
+  font-size:1em;line-height:52px;
+  letter-spacing:var(--ls-4);text-transform:uppercase;
+  color:var(--sodium);text-shadow:0 0 12px rgba(255,138,30,.35);
+  margin:0 0 18px;white-space:nowrap;
+}
+footer .fbody{flex:1;min-width:0;max-width:none;margin:0}
+/* Below this the single line no longer fits beside the flasher, so the ping goes
+   above and the line is allowed to wrap rather than overflow. */
+@media (max-width:700px){
+  footer{flex-direction:column;gap:16px}
+  footer h2{white-space:normal;line-height:1.55;margin-bottom:16px}
+}
+/* Centred column at a readable measure. The three-column grid gave 39 characters
+   per line — well under the 45-75 comfort band — because six sections in 900px
+   leaves each one narrower than a paperback column. One column at ~66ch reads
+   properly, stacks in DOM order, and needs no breakpoints. */
+
+footer h3 sup{font-size:.7em;vertical-align:.4em;line-height:0}
+footer h3{
+  color:var(--sodium);opacity:.85;
+  margin:0 0 7px;font-family:var(--mono);font-size:var(--fs-1);font-weight:400;
+  letter-spacing:var(--ls-4);text-transform:uppercase;color:var(--ice);opacity:.75;
+}
+
+footer p i{font-style:italic;color:var(--dim)}
+footer a{color:var(--ice);text-underline-offset:3px}
+footer a:hover{color:var(--ink)}
+footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
+.colophon{
+  display:flex;justify-content:space-between;gap:12px 28px;flex-wrap:wrap;
+  margin:22px 0 0;padding:0;
+  font-size:var(--fs-1);letter-spacing:var(--ls-4);text-transform:uppercase;
+  color:var(--dimmer);
+}
+.colophon a{
+  color:var(--ice);text-decoration:none;
+  border-bottom:1px solid rgba(34,224,255,.3);
+  text-shadow:0 0 10px rgba(34,224,255,.45);
+  transition:.15s;
+}
+.colophon a:hover{
+  color:var(--ink);border-bottom-color:var(--ice);
+  text-shadow:0 0 14px rgba(34,224,255,.7);
+}
+@media (max-width:520px){ .colophon{justify-content:center;text-align:center} }
+
+.notice{
+  margin:0;padding:10px 16px 12px;border-top:1px solid var(--rule-soft);
+  font-size:var(--fs-3);letter-spacing:var(--ls-1);color:var(--dimmer);
+  line-height:1.6;
+}
+.notice a{color:var(--dim);text-underline-offset:3px}
+.notice a:hover{color:var(--ice)}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:620px){
+  .wrap{padding:16px 8px 60px}
+  h1{margin:22px 0}
+  table thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border-bottom:1px solid var(--rule-soft);padding:12px 0}
+  td{border:0;padding:2px 0}
+  td.num{text-align:left;color:var(--dimmer);font-size:var(--fs-3)}
+  td.t{font-size:var(--fs-4)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="topbar">
+      <div class="side"><span class="brand">Space Northwest</span><span class="tick"></span></div>
+      <h1>Overhead</h1>
+      <div class="side"><span class="tick"></span><a class="signup" href="https://luma.com/seattlespaceweek" target="_blank" rel="noopener">Sign up for Space Week</a></div>
+      <div class="stacked">
+        <span class="brand">Space Northwest</span>
+        <a class="signup" href="https://luma.com/seattlespaceweek" target="_blank" rel="noopener">Sign up for Space Week</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="dome-shell" aria-label="Sky view from Seattle">
+    <div class="odo" id="odo" aria-live="off"></div>
+    <svg class="dome" id="dome" viewBox="36 14 488 470" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="domedesc"></svg>
+    <p id="domedesc" class="sr">A polar plot of the sky. The outer ring is the horizon, the center is straight up. Satellite positions are listed in the pass table below.</p>
+    <div class="domeclock"><span class="wallclock" id="wallclock" aria-live="off"></span></div>
+    <div class="transport">
+      <button class="tbtn" id="playbtn" aria-label="Run time forward"></button>
+      <input type="range" id="scrub" min="0" max="840" step="1" value="0" aria-label="Look ahead, in minutes">
+      <span class="tlabel" id="tlabel">now</span>
+    </div>
+    <div id="callout"></div>
+    <p class="notice">This visualization is informational only and is not intended for navigation,
+    collision avoidance, conjunction analysis, or any operational use. Positions are approximate,
+    calculated from publicly available
+    <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a> orbital data
+    &mdash; not live satellite telemetry or exact real-time positions.</p>
+    <div class="legend">
+      <div class="lgroup">
+        <h3>Visibility</h3>
+        <div class="litems" id="key-state"></div>
+      </div>
+      <div class="lgroup">
+        <h3>Type</h3>
+        <div class="litems" id="key-class"></div>
+      </div>
+      <div class="lgroup">
+        <h3>Operator</h3>
+        <div class="litems" id="key-operator"></div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="sect">
+    <div class="sect-head">
+      <h2>Next passes</h2>
+      <span class="count" id="passcount">Calculating…</span>
+    </div>
+    <div class="controls" id="filters" role="group" aria-label="Filter by operator" style="margin-top:14px"></div>
+    <div class="progress"><span id="prog"></span></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Time (PT)</th><th>Spacecraft</th><th class="num">Peak</th><th class="num">Direction</th><th class="num">Above for</th>
+        </tr>
+      </thead>
+      <tbody id="passes"></tbody>
+    </table>
+    <div class="more"><button class="chip" id="showmore" aria-expanded="false" aria-controls="passes"></button></div>
+  </section>
+
+  <footer>
+    <div class="ping" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
+    <div class="fbody">
+      <h2>About this visualization</h2>
+    <div class="notes">
+      <section>
+        <h3>Where the data comes from</h3>
+        <p>Orbital elements are published by <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a>,
+        a non-profit that makes space data freely available. A scheduled job fetches the active
+        catalog once a day and commits it alongside this page, so the page itself never queries
+        CelesTrak &mdash; however many people are watching, the load upstream is one request a day.
+        If that job stops, the elements go stale rather than disappearing.</p>
+      </section>
+      <section>
+        <h3>How positions are calculated</h3>
+        <p>Positions are propagated from those elements using SGP4, the model ground stations use.
+        They are <b>calculated approximations, not live satellite telemetry and not exact real-time
+        positions</b>. Accuracy decays as elements age, which is why they are refreshed daily. A
+        spacecraft is shown as visible only when the Sun is more than 6&deg; below the horizon in
+        Seattle and the spacecraft itself is still in sunlight.</p>
+      </section>
+      <section>
+        <h3>How spacecraft are classified</h3>
+        <p>The type shown for each spacecraft &mdash; imager, servicer, tug, broadband slab and so
+        on &mdash; is a <b>Space Northwest classification, not a catalog value</b>. The orbital
+        catalog distinguishes only payloads, rocket bodies and debris; anything not a rocket body
+        or debris is simply a payload. Every spacecraft here except spent rocket stages would be
+        catalogued as &ldquo;payload&rdquo;. The finer types are editorial, assigned per operator,
+        and exist to make the sky readable rather than to reproduce a catalog field.</p>
+      </section>
+      <section>
+        <h3>How the sky is drawn</h3>
+        <p>The circle is the whole sky as seen from Seattle, Washington: the center is straight
+        overhead, the rim is the horizon, north is at the top. Color identifies the operator and
+        shape identifies the type of spacecraft. Trails show roughly where an object has been and
+        where it is heading over the following minutes.</p>
+      </section>
+      <section>
+        <h3>The Moon and Mt Rainier</h3>
+        <p>Both are reference points, not tracked objects. The Moon is drawn at its true bearing
+        and elevation with its correct phase, but at perhaps twenty times its real size &mdash; at
+        true scale it would be a single pixel. Mt Rainier sits at its true bearing of 152&deg; and
+        its true angular width, but its height is exaggerated three times: from Seattle its summit
+        is only 2.3&deg; above the horizon, which would otherwise be an invisible sliver.</p>
+      </section>
+      <section>
+        <h3>Washington-built, and why it is hard to know</h3>
+        <p><b>Washington-built means the spacecraft&rsquo;s primary structure and bus were
+        manufactured in Washington, or it underwent final integration here.</b> Headquarters,
+        operator and launch site are never sufficient &mdash; BlackSky is a Virginia company whose
+        satellites are built in Tukwila, and nothing on this map launched from Washington.
+        Components alone do not qualify either: Washington-built propulsion flies on a great many
+        spacecraft that are not counted here.
+        That is harder to establish than it sounds. The tracking catalogs and launch registries
+        record where a spacecraft is and who is responsible for it; <b>neither has a manufacturer
+        field</b>. Provenance gets compiled by hand, from press releases, regulatory filings and
+        trade press, by a small number of independent researchers. These attributions come from
+        Space Northwest research and documented sources, seeded from
+        <a href="https://planet4589.org/space/gcat" target="_blank" rel="noopener">GCAT</a>, which
+        records manufacture at the level of the factory rather than the parent company. Counts
+        reflect spacecraft currently operational in orbit, not historical manufacturing
+        totals.<span id="unverified"></span></p>
+      </section>
+      <section>
+        <h3>Distance flown<sup>*</sup></h3>
+        <p><b>An estimate, not a measurement.</b> Derived rather than claimed: orbital speed comes from the element set, elapsed time
+        from the CelesTrak launch date. Both are catalog values. It is an approximation &mdash; it
+        assumes a near-circular orbit at today&rsquo;s altitude across the whole life of the
+        spacecraft and ignores drag, orbit raises and maneuvers, so treat it as an order of
+        magnitude rather than an odometer. Spacecraft without a recorded launch date are left out
+        of the total rather than estimated.</p>
+      </section>
+      <section>
+        <h3>Time</h3>
+        <p>The clock beneath the sky shows the time the view is drawn for, in Pacific Time and in
+        UTC. Using the play button or the slider moves the sky forward and the clock moves with it,
+        so the time shown is always the time that sky belongs to.</p>
+      </section>
+    </div>
+    </div>
+  </footer>
+
+  <p class="colophon">
+      <span>Designed and developed by
+        <a href="https://www.linkedin.com/in/ericksonblake/" target="_blank" rel="noopener">Blake Erickson</a>
+        for Space Northwest</span>
+      <span>Orbital data from <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a>
+        &middot; manufacturer data from
+        <a href="https://planet4589.org/space/gcat" target="_blank" rel="noopener">GCAT</a>
+        (J. McDowell)</span>
+    </p>
+
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== self-contained propagator =====================
+   If satellite.js is unavailable — blocked CDN, offline laptop, conference
+   wifi — the page falls back to this. Keplerian motion with J2 secular drift:
+   no drag, no short-period terms, but validated to hold altitude within a few
+   km over 24 hours and to reproduce sun-synchronous nodal regression at
+   0.986 deg/day. For pointing a person at a patch of sky, that is plenty. */
+const FALLBACK_PROP = (function(){
+  /* Self-contained orbital propagation: Keplerian motion with J2 secular drift.
+     Same interface as satellite.js so it can stand in when the CDN is blocked.
+     Less accurate than full SGP4 — it omits drag and short-period terms — but for
+     pointing a person at a patch of sky it is well inside the error that matters. */
+
+  const MU = 398600.4418, RE = 6378.137, J2 = 0.00108262998905;
+  const TWOPI = Math.PI * 2, DEG = Math.PI / 180;
+
+  function twoline2satrec(l1, l2) {
+    const yy = +l1.slice(18, 20);
+    const doy = +l1.slice(20, 32);
+    const year = yy < 57 ? 2000 + yy : 1900 + yy;
+    const epochMs = Date.UTC(year, 0, 1) + (doy - 1) * 86400000;
+
+    const inclo = +l2.slice(8, 16) * DEG;
+    const nodeo = +l2.slice(17, 25) * DEG;
+    const ecco = +('0.' + l2.slice(26, 33).trim());
+    const argpo = +l2.slice(34, 42) * DEG;
+    const mo = +l2.slice(43, 51) * DEG;
+    const noRev = +l2.slice(52, 63);
+    if (!isFinite(noRev) || noRev <= 0) return { error: 1 };
+
+    const no = noRev * TWOPI / 86400;          // rad/s
+    const a = Math.cbrt(MU / (no * no));       // km
+    const p = a * (1 - ecco * ecco);
+    const f = 1.5 * J2 * (RE / p) * (RE / p) * no;
+    const cosi = Math.cos(inclo), sin2i = Math.sin(inclo) ** 2;
+
+    return {
+      error: 0, epochMs, inclo, nodeo, ecco, argpo, mo, a, no,
+      nodeDot: -f * cosi,
+      argpDot: f * (2 - 2.5 * sin2i),
+      mDot: no * (1 + 1.5 * J2 * (RE / p) * (RE / p) * Math.sqrt(1 - ecco * ecco) * (1 - 1.5 * sin2i))
+    };
+  }
+
+  function propagate(s, date) {
+    if (!s || s.error) return { position: false, velocity: false };
+    const t = (date.getTime() - s.epochMs) / 1000;
+
+    const M = s.mo + s.mDot * t;
+    const node = s.nodeo + s.nodeDot * t;
+    const argp = s.argpo + s.argpDot * t;
+    const e = s.ecco;
+
+    // Kepler's equation by Newton-Raphson.
+    let E = M;
+    for (let k = 0; k < 12; k++) {
+      const d = (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+      E -= d;
+      if (Math.abs(d) < 1e-11) break;
+    }
+
+    const nu = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2),
+                              Math.sqrt(1 - e) * Math.cos(E / 2));
+    const r = s.a * (1 - e * Math.cos(E));
+    const u = argp + nu;
+    const cu = Math.cos(u), su = Math.sin(u);
+    const cn = Math.cos(node), sn = Math.sin(node);
+    const ci = Math.cos(s.inclo), si = Math.sin(s.inclo);
+
+    return {
+      position: {
+        x: r * (cn * cu - sn * su * ci),
+        y: r * (sn * cu + cn * su * ci),
+        z: r * (su * si)
+      },
+      velocity: { x: 0, y: 0, z: 0 }
+    };
+  }
+
+  function gstime(date) {
+    const jd = date.getTime() / 86400000 + 2440587.5;
+    const T = (jd - 2451545.0) / 36525;
+    let s = 67310.54841 + (876600 * 3600 + 8640184.812866) * T
+          + 0.093104 * T * T - 6.2e-6 * T * T * T;
+    s = ((s % 86400) + 86400) % 86400;
+    return s * TWOPI / 86400;
+  }
+
+  function eciToEcf(p, g) {
+    return { x: p.x * Math.cos(g) + p.y * Math.sin(g),
+             y: -p.x * Math.sin(g) + p.y * Math.cos(g),
+             z: p.z };
+  }
+
+  function ecfToLookAngles(gd, ecf) {
+    const lat = gd.latitude, lon = gd.longitude, h = gd.height || 0;
+    const sLat = Math.sin(lat), cLat = Math.cos(lat);
+    const sLon = Math.sin(lon), cLon = Math.cos(lon);
+    const e2 = 0.00669437999014;
+    const N = RE / Math.sqrt(1 - e2 * sLat * sLat);
+    const ox = (N + h) * cLat * cLon, oy = (N + h) * cLat * sLon, oz = (N * (1 - e2) + h) * sLat;
+    const dx = ecf.x - ox, dy = ecf.y - oy, dz = ecf.z - oz;
+    const S = sLat * cLon * dx + sLat * sLon * dy - cLat * dz;
+    const E = -sLon * dx + cLon * dy;
+    const Z = cLat * cLon * dx + cLat * sLon * dy + sLat * dz;
+    const rng = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    let az = Math.atan2(-E, S) + Math.PI;
+    if (az > TWOPI) az -= TWOPI;
+    return { azimuth: az, elevation: Math.asin(Z / rng), rangeSat: rng };
+  }
+  return {twoline2satrec, propagate, gstime, eciToEcf, ecfToLookAngles};
+})();
+
+const HAVE_SGP4 = typeof satellite !== 'undefined' && !!satellite.twoline2satrec;
+const SGP = HAVE_SGP4 ? satellite : FALLBACK_PROP;
+
+/* ============================== data ============================== */
+const DEMO_TLES = [{"name":"OTTER PUP 2","operator":"Starfish Space","built":"Tukwila, WA","kind":"Satellite servicing demo","launched":"2025-01-14","line1":"1 62100U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9991","line2":"2 62100  97.4500 141.0000 0001000  37.0000 204.0000 15.17962267100006"},{"name":"XCRAFT-1","operator":"Xplore","built":"Redmond, WA","kind":"Hyperspectral imaging","launched":"2025-03-29","line1":"1 62101U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9992","line2":"2 62101  97.5200 204.0000 0001000  37.0000  61.0000 15.12690146100005"},{"name":"HUBBLE NETWORK BLE-3","operator":"Hubble Network","built":"Seattle, WA","kind":"Bluetooth-from-orbit relay","launched":"2024-09-19","line1":"1 62102U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9993","line2":"2 62102  97.4100  88.0000 0001000  37.0000 317.0000 15.20278457100004"},{"name":"BLACKSKY GLOBAL 7","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2021-08-09","line1":"1 62103U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9994","line2":"2 62103  53.0200  12.0000 0001000  37.0000   0.0000 15.38008160100001"},{"name":"BLACKSKY GLOBAL 8","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2023-02-13","line1":"1 62104U 26050B   26230.50000000  .00002182  00000-0  11111-3 0  9995","line2":"2 62104  53.0200  37.7000 0001000  48.0000 137.5000 15.38008160100004"},{"name":"BLACKSKY GLOBAL 9","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2022-07-25","line1":"1 62105U 26050C   26230.50000000  .00002182  00000-0  11111-3 0  9996","line2":"2 62105  53.0200  63.4000 0001000  59.0000 275.0000 15.38008160100001"},{"name":"BLACKSKY GLOBAL 10","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2021-07-23","line1":"1 62106U 26050D   26230.50000000  .00002182  00000-0  11111-3 0  9997","line2":"2 62106  53.0200  89.1000 0001000  70.0000  52.5000 15.38008160100008"},{"name":"BLACKSKY GLOBAL 11","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2023-01-10","line1":"1 62107U 26050E   26230.50000000  .00002182  00000-0  11111-3 0  9998","line2":"2 62107  53.0200 114.8000 0001000  81.0000 190.0000 15.38008160100005"},{"name":"BLACKSKY GLOBAL 12","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2021-06-28","line1":"1 62108U 26050F   26230.50000000  .00002182  00000-0  11111-3 0  9999","line2":"2 62108  53.0200 140.5000 0001000  92.0000 327.5000 15.38008160100001"},{"name":"BLACKSKY GLOBAL 13","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2022-10-14","line1":"1 62109U 26050G   26230.50000000  .00002182  00000-0  11111-3 0  9990","line2":"2 62109  53.0200 166.2000 0001000 103.0000 105.0000 15.38008160100009"},{"name":"BLACKSKY GLOBAL 14","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2021-08-06","line1":"1 62110U 26050H   26230.50000000  .00002182  00000-0  11111-3 0  9992","line2":"2 62110  53.0200 191.9000 0001000 114.0000 242.5000 15.38008160100005"},{"name":"BLACKSKY GLOBAL 15","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2021-08-31","line1":"1 62111U 26050I   26230.50000000  .00002182  00000-0  11111-3 0  9993","line2":"2 62111  53.0200 217.6000 0001000 125.0000  20.0000 15.38008160100003"},{"name":"BLACKSKY GLOBAL 16","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2022-10-03","line1":"1 62112U 26050J   26230.50000000  .00002182  00000-0  11111-3 0  9994","line2":"2 62112  53.0200 243.3000 0001000 136.0000 157.5000 15.38008160100008"},{"name":"BLACKSKY GLOBAL 17","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2024-01-26","line1":"1 62113U 26050K   26230.50000000  .00002182  00000-0  11111-3 0  9995","line2":"2 62113  53.0200 269.0000 0001000 147.0000 295.0000 15.38008160100004"},{"name":"BLACKSKY GLOBAL 18","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2021-10-09","line1":"1 62114U 26050L   26230.50000000  .00002182  00000-0  11111-3 0  9996","line2":"2 62114  53.0200 294.7000 0001000 158.0000  72.5000 15.38008160100000"},{"name":"BLACKSKY GLOBAL 19","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2022-02-05","line1":"1 62115U 26050M   26230.50000000  .00002182  00000-0  11111-3 0  9997","line2":"2 62115  53.0200 320.4000 0001000 169.0000 210.0000 15.38008160100009"},{"name":"BLACKSKY GLOBAL 20","operator":"BlackSky","built":"Seattle, WA","kind":"Sub-metre Earth imaging","launched":"2023-06-02","line1":"1 62116U 26050N   26230.50000000  .00002182  00000-0  11111-3 0  9998","line2":"2 62116  53.0200 346.1000 0001000 180.0000 347.5000 15.38008160100004"},{"name":"STARLINK 31001","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2025-03-18","line1":"1 62117U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9999","line2":"2 62117  53.0500  31.0000 0001000  37.0000   0.0000 15.05816656100001"},{"name":"STARLINK 31002","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2023-08-02","line1":"1 62118U 26050B   26230.50000000  .00002182  00000-0  11111-3 0  9990","line2":"2 62118  53.0500  60.0000 0001000  48.0000  97.0000 15.05816656100002"},{"name":"STARLINK 31003","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2022-10-17","line1":"1 62119U 26050C   26230.50000000  .00002182  00000-0  11111-3 0  9991","line2":"2 62119  53.0500  89.0000 0001000  59.0000 194.0000 15.05816656100004"},{"name":"STARLINK 31004","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2025-05-02","line1":"1 62120U 26050D   26230.50000000  .00002182  00000-0  11111-3 0  9993","line2":"2 62120  53.0500 118.0000 0001000  70.0000 291.0000 15.05816656100000"},{"name":"STARLINK 31005","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2021-04-04","line1":"1 62121U 26050E   26230.50000000  .00002182  00000-0  11111-3 0  9994","line2":"2 62121  53.0500 147.0000 0001000  81.0000  28.0000 15.05816656100003"},{"name":"STARLINK 31006","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2024-10-26","line1":"1 62122U 26050F   26230.50000000  .00002182  00000-0  11111-3 0  9995","line2":"2 62122  53.0500 176.0000 0001000  92.0000 125.0000 15.05816656100006"},{"name":"STARLINK 31007","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2022-04-28","line1":"1 62123U 26050G   26230.50000000  .00002182  00000-0  11111-3 0  9996","line2":"2 62123  53.0500 205.0000 0001000 103.0000 222.0000 15.05816656100001"},{"name":"STARLINK 31008","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2021-09-08","line1":"1 62124U 26050H   26230.50000000  .00002182  00000-0  11111-3 0  9997","line2":"2 62124  53.0500 234.0000 0001000 114.0000 319.0000 15.05816656100003"},{"name":"STARLINK 31009","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2021-07-27","line1":"1 62125U 26050I   26230.50000000  .00002182  00000-0  11111-3 0  9998","line2":"2 62125  53.0500 263.0000 0001000 125.0000  56.0000 15.05816656100006"},{"name":"STARLINK 31010","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2022-05-29","line1":"1 62126U 26050J   26230.50000000  .00002182  00000-0  11111-3 0  9999","line2":"2 62126  53.0500 292.0000 0001000 136.0000 153.0000 15.05816656100009"},{"name":"STARLINK 31011","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2024-08-19","line1":"1 62127U 26050K   26230.50000000  .00002182  00000-0  11111-3 0  9990","line2":"2 62127  53.0500 321.0000 0001000 147.0000 250.0000 15.05816656100003"},{"name":"STARLINK 31012","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2021-11-05","line1":"1 62128U 26050L   26230.50000000  .00002182  00000-0  11111-3 0  9991","line2":"2 62128  53.0500 350.0000 0001000 158.0000 347.0000 15.05816656100005"},{"name":"STARLINK 32001","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2023-08-09","line1":"1 62129U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9992","line2":"2 62129  53.2100 163.0000 0001000  37.0000  44.0000 15.08428979100006"},{"name":"STARLINK 32002","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2023-11-09","line1":"1 62130U 26050B   26230.50000000  .00002182  00000-0  11111-3 0  9994","line2":"2 62130  53.2100 196.0000 0001000  48.0000 157.0000 15.08428979100001"},{"name":"STARLINK 32003","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2022-09-08","line1":"1 62131U 26050C   26230.50000000  .00002182  00000-0  11111-3 0  9995","line2":"2 62131  53.2100 229.0000 0001000  59.0000 270.0000 15.08428979100007"},{"name":"STARLINK 32004","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2023-06-16","line1":"1 62132U 26050D   26230.50000000  .00002182  00000-0  11111-3 0  9996","line2":"2 62132  53.2100 262.0000 0001000  70.0000  23.0000 15.08428979100004"},{"name":"STARLINK 32005","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2021-04-30","line1":"1 62133U 26050E   26230.50000000  .00002182  00000-0  11111-3 0  9997","line2":"2 62133  53.2100 295.0000 0001000  81.0000 136.0000 15.08428979100008"},{"name":"STARLINK 32006","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2021-04-25","line1":"1 62134U 26050F   26230.50000000  .00002182  00000-0  11111-3 0  9998","line2":"2 62134  53.2100 328.0000 0001000  92.0000 249.0000 15.08428979100003"},{"name":"STARLINK 32007","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2021-12-15","line1":"1 62135U 26050G   26230.50000000  .00002182  00000-0  11111-3 0  9999","line2":"2 62135  53.2100   1.0000 0001000 103.0000   2.0000 15.08428979100002"},{"name":"STARLINK 32008","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2024-01-15","line1":"1 62136U 26050H   26230.50000000  .00002182  00000-0  11111-3 0  9990","line2":"2 62136  53.2100  34.0000 0001000 114.0000 115.0000 15.08428979100006"},{"name":"STARLINK 32009","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2022-12-06","line1":"1 62137U 26050I   26230.50000000  .00002182  00000-0  11111-3 0  9991","line2":"2 62137  53.2100  67.0000 0001000 125.0000 228.0000 15.08428979100000"},{"name":"STARLINK 32010","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2022-06-07","line1":"1 62138U 26050J   26230.50000000  .00002182  00000-0  11111-3 0  9992","line2":"2 62138  53.2100 100.0000 0001000 136.0000 341.0000 15.08428979100007"},{"name":"STARLINK 33001","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2023-08-16","line1":"1 62139U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9993","line2":"2 62139  97.6300   7.0000 0001000  37.0000 210.0000 15.01912283100002"},{"name":"STARLINK 33002","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2023-01-16","line1":"1 62140U 26050B   26230.50000000  .00002182  00000-0  11111-3 0  9995","line2":"2 62140  97.6300  48.0000 0001000  48.0000 281.0000 15.01912283100009"},{"name":"STARLINK 33003","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2022-05-15","line1":"1 62141U 26050C   26230.50000000  .00002182  00000-0  11111-3 0  9996","line2":"2 62141  97.6300  89.0000 0001000  59.0000 352.0000 15.01912283100006"},{"name":"STARLINK 33004","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2024-07-15","line1":"1 62142U 26050D   26230.50000000  .00002182  00000-0  11111-3 0  9997","line2":"2 62142  97.6300 130.0000 0001000  70.0000  63.0000 15.01912283100006"},{"name":"STARLINK 33005","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2024-02-13","line1":"1 62143U 26050E   26230.50000000  .00002182  00000-0  11111-3 0  9998","line2":"2 62143  97.6300 171.0000 0001000  81.0000 134.0000 15.01912283100003"},{"name":"STARLINK 33006","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2022-02-15","line1":"1 62144U 26050F   26230.50000000  .00002182  00000-0  11111-3 0  9999","line2":"2 62144  97.6300 212.0000 0001000  92.0000 205.0000 15.01912283100001"},{"name":"STARLINK 33007","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2023-07-29","line1":"1 62145U 26050G   26230.50000000  .00002182  00000-0  11111-3 0  9990","line2":"2 62145  97.6300 253.0000 0001000 103.0000 276.0000 15.01912283100008"},{"name":"STARLINK 33008","operator":"SpaceX","built":"Redmond, WA","kind":"Broadband constellation","launched":"2023-05-11","line1":"1 62146U 26050H   26230.50000000  .00002182  00000-0  11111-3 0  9991","line2":"2 62146  97.6300 294.0000 0001000 114.0000 347.0000 15.01912283100005"},{"name":"AMAZON LEO 1401","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2026-03-28","line1":"1 62147U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9992","line2":"2 62147  51.9100  55.0000 0001000  37.0000  18.0000 14.79469236100000"},{"name":"AMAZON LEO 1402","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2026-01-31","line1":"1 62148U 26050B   26230.50000000  .00002182  00000-0  11111-3 0  9993","line2":"2 62148  51.9100  90.5000 0001000  48.0000 139.0000 14.79469236100001"},{"name":"AMAZON LEO 1403","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2025-08-15","line1":"1 62149U 26050C   26230.50000000  .00002182  00000-0  11111-3 0  9994","line2":"2 62149  51.9100 126.0000 0001000  59.0000 260.0000 14.79469236100004"},{"name":"AMAZON LEO 1404","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2026-05-07","line1":"1 62150U 26050D   26230.50000000  .00002182  00000-0  11111-3 0  9996","line2":"2 62150  51.9100 161.5000 0001000  70.0000  21.0000 14.79469236100008"},{"name":"AMAZON LEO 1405","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2025-06-12","line1":"1 62151U 26050E   26230.50000000  .00002182  00000-0  11111-3 0  9997","line2":"2 62151  51.9100 197.0000 0001000  81.0000 142.0000 14.79469236100009"},{"name":"AMAZON LEO 1406","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2025-10-04","line1":"1 62152U 26050F   26230.50000000  .00002182  00000-0  11111-3 0  9998","line2":"2 62152  51.9100 232.5000 0001000  92.0000 263.0000 14.79469236100001"},{"name":"AMAZON LEO 1407","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2026-02-11","line1":"1 62153U 26050G   26230.50000000  .00002182  00000-0  11111-3 0  9999","line2":"2 62153  51.9100 268.0000 0001000 103.0000  24.0000 14.79469236100004"},{"name":"AMAZON LEO 1408","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2025-06-25","line1":"1 62154U 26050H   26230.50000000  .00002182  00000-0  11111-3 0  9990","line2":"2 62154  51.9100 303.5000 0001000 114.0000 145.0000 14.79469236100006"},{"name":"AMAZON LEO 1409","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2025-10-31","line1":"1 62155U 26050I   26230.50000000  .00002182  00000-0  11111-3 0  9991","line2":"2 62155  51.9100 339.0000 0001000 125.0000 266.0000 14.79469236100007"},{"name":"AMAZON LEO 1410","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2025-05-12","line1":"1 62156U 26050J   26230.50000000  .00002182  00000-0  11111-3 0  9992","line2":"2 62156  51.9100  14.5000 0001000 136.0000  27.0000 14.79469236100000"},{"name":"AMAZON LEO 2101","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2026-01-08","line1":"1 62157U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9993","line2":"2 62157  42.0400  99.0000 0001000  37.0000  76.0000 14.85824214100005"},{"name":"AMAZON LEO 2102","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2026-02-14","line1":"1 62158U 26050B   26230.50000000  .00002182  00000-0  11111-3 0  9994","line2":"2 62158  42.0400 187.0000 0001000  48.0000 225.0000 14.85824214100002"},{"name":"AMAZON LEO 2103","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2025-12-02","line1":"1 62159U 26050C   26230.50000000  .00002182  00000-0  11111-3 0  9995","line2":"2 62159  42.0400 275.0000 0001000  59.0000  14.0000 14.85824214100009"},{"name":"AMAZON LEO 2104","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2026-03-28","line1":"1 62160U 26050D   26230.50000000  .00002182  00000-0  11111-3 0  9997","line2":"2 62160  42.0400   3.0000 0001000  70.0000 163.0000 14.85824214100008"},{"name":"AMAZON LEO 3101","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2025-08-25","line1":"1 62161U 26050A   26230.50000000  .00002182  00000-0  11111-3 0  9998","line2":"2 62161  33.0300 201.0000 0001000  37.0000 133.0000 14.91903698100009"},{"name":"AMAZON LEO 3102","operator":"Amazon","built":"Kirkland, WA","kind":"Broadband constellation","launched":"2026-01-18","line1":"1 62162U 26050B   26230.50000000  .00002182  00000-0  11111-3 0  9999","line2":"2 62162  33.0300  11.0000 0001000  48.0000 313.0000 14.91903698100001"}];
+
+/* One observer for the whole week: downtown Seattle.
+   Space Week runs from Federal Way to Redmond, but that is 43 km at the widest,
+   which moves a pass's peak elevation by 1-5 degrees and its timing by about six
+   seconds — so a venue picker would imply a precision that isn't there. Seattle
+   is the honest label because the page says the view is from Seattle; Mt Rainier
+   recomputes from here automatically (152 deg SSE, 2.3 deg up). */
+const OBSERVER = {label:'Seattle', lat:47.6062, lon:-122.3321};
+
+const OPERATOR_ORDER = ['Starfish Space','Xplore','Hubble Network','BlackSky','SpaceX','Amazon'];
+
+/* ============================== state ============================== */
+let SATS = [];            // {name, operator, built, kind, alt, satrec}
+const observer = OBSERVER;
+let filter = 'ALL';
+
+/* Time travel. tOffset is how far ahead of real time the dome is showing.
+   The whole point of the app is "go outside at 7:42" — so let people watch
+   7:42 happen now, in three seconds, before they decide to walk outside. */
+let tOffset = 0;
+let playing = false;
+const RATE = 60;              // 1 second of watching = 1 minute of sky
+const MAX_AHEAD = 840*60000;  // 14 h, matching the pass search window
+function simNow(){ return new Date(Date.now() + tOffset); }
+let passes = [];
+const PASS_PREVIEW = 5;      // rows visible at rest, and the size of each reveal
+const PASS_RENDER_CAP = 40;  // hard render limit — a drawing cap, NOT a count
+let passesShown = PASS_PREVIEW;
+
+const MIN_EL = 10;        // degrees — below this a pass isn't worth walking outside for
+const HORIZON_H = 12;     // hours of look-ahead
+const RE_KM = 6378.137;
+
+/* ============================== helpers ============================== */
+const D = Math.PI/180, R = 180/Math.PI;
+const $ = s => document.querySelector(s);
+
+function observerGd(){
+  return {longitude: observer.lon*D, latitude: observer.lat*D, height: 0.06};
+}
+
+function fmtTime(d){
+  return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/Los_Angeles'});
+}
+function fmtDayIfNeeded(d){
+  const today = new Date().toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'});
+  const that  = d.toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'});
+  if(today === that) return '';
+  return ' ' + d.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/Los_Angeles'});
+}
+function compass(azDeg){
+  const pts=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return pts[Math.round(((azDeg%360)+360)%360/22.5)%16];
+}
+
+/* --- low-precision solar position in ECI km (mean equinox of date) --- */
+function sunEci(date){
+  const jd = (date.getTime()/86400000) + 2440587.5;
+  const n = jd - 2451545.0;
+  const L = (280.460 + 0.9856474*n) * D;
+  const g = (357.528 + 0.9856003*n) * D;
+  const lam = L + 1.915*D*Math.sin(g) + 0.020*D*Math.sin(2*g);
+  const eps = (23.439 - 0.0000004*n) * D;
+  const dist = 149597870.7 * (1.00014 - 0.01671*Math.cos(g) - 0.00014*Math.cos(2*g));
+  return {x: dist*Math.cos(lam), y: dist*Math.cos(eps)*Math.sin(lam), z: dist*Math.sin(eps)*Math.sin(lam)};
+}
+function sunlit(satEci, sun){
+  const m = Math.hypot(sun.x,sun.y,sun.z);
+  const u = {x:sun.x/m, y:sun.y/m, z:sun.z/m};
+  const proj = satEci.x*u.x + satEci.y*u.y + satEci.z*u.z;
+  if(proj > 0) return true;                       // sun-facing hemisphere
+  const px = satEci.x - proj*u.x, py = satEci.y - proj*u.y, pz = satEci.z - proj*u.z;
+  return Math.hypot(px,py,pz) > RE_KM;            // outside the shadow cylinder
+}
+function sunElevation(date, gmst){
+  const s = sunEci(date);
+  const ecf = SGP.eciToEcf(s, gmst);
+  return SGP.ecfToLookAngles(observerGd(), ecf).elevation * R;
+}
+
+/* --- look angles for one satrec at one instant --- */
+function look(satrec, date, gmst){
+  const pv = SGP.propagate(satrec, date);
+  if(!pv || !pv.position) return null;
+  const ecf = SGP.eciToEcf(pv.position, gmst);
+  const la = SGP.ecfToLookAngles(observerGd(), ecf);
+  return {az: la.azimuth*R, el: la.elevation*R, range: la.rangeSat, eci: pv.position};
+}
+
+/* ============================== load elements ============================== */
+function buildSats(records){
+  const out = [];
+  for(const r of records){
+    try{
+      const rec = SGP.twoline2satrec(r.line1, r.line2);
+      if(rec.error) continue;
+      out.push(Object.assign({}, r, {satrec: rec, cls: classOf(r), phase: (out.length*1.7)%6.283}));
+    }catch(e){ /* skip malformed */ }
+  }
+  return out;
+}
+
+/* ============================== pass prediction ============================== */
+let computeToken = 0;
+function computePasses(){
+  const token = ++computeToken;
+  const start = new Date();
+  const stepCoarse = 30000;                       // 30 s
+  const steps = Math.round(HORIZON_H*3600000/stepCoarse);
+  const found = [];
+  let i = 0;
+  $('#prog').style.width = '0%';
+
+  function chunk(){
+    if(token !== computeToken) return;
+    const until = Math.min(i+3, SATS.length);
+    for(; i<until; i++){
+      const s = SATS[i];
+      let inPass = false, best = null, entered = null;
+      for(let k=0;k<=steps;k++){
+        const t = new Date(start.getTime() + k*stepCoarse);
+        const gmst = SGP.gstime(t);
+        const l = look(s.satrec, t, gmst);
+        if(!l){ continue; }
+        if(l.el >= MIN_EL){
+          if(!inPass){ inPass = true; entered = t; best = {el:-90}; }
+          if(l.el > best.el) best = {el:l.el, az:l.az, t:t, eci:l.eci, gmst:gmst};
+        } else if(inPass){
+          inPass = false;
+          const sunEl = sunElevation(best.t, best.gmst);
+          const lit = sunlit(best.eci, sunEci(best.t));
+          found.push({
+            sat: s, start: entered, peak: best.t, end: t,
+            el: best.el, az: best.az,
+            visible: (sunEl < -6) && lit
+          });
+          if(found.filter(f=>f.sat===s).length >= 6) break;   // plenty per object
+        }
+
+      }
+    }
+    $('#prog').style.width = Math.round(i/SATS.length*100)+'%';
+    if(i < SATS.length){ requestAnimationFrame(chunk); }
+    else{
+      passes = found.sort((a,b)=>a.peak-b.peak);
+      $('#prog').style.width = '0%';
+      renderPasses(); renderCallout();
+    }
+  }
+  requestAnimationFrame(chunk);
+}
+
+/* ===================== moon and terrain =====================
+   The Moon is the reference object this app actually needed. "It passes just
+   under the Moon" needs no compass and no explanation. Low-precision lunar
+   theory — a handful of terms, good to a few tenths of a degree, which is far
+   inside the precision of pointing a person at a patch of sky. Topocentric
+   parallax (up to ~1 deg for something only 385,000 km away) falls out of
+   ecfToLookAngles for free, because that already subtracts the observer. */
+function moonEcl(date){
+  const jd = date.getTime()/86400000 + 2440587.5;
+  const T  = (jd - 2451545.0)/36525;
+  const s = x => Math.sin(x*D), c = x => Math.cos(x*D);
+  const Lp = 218.3165 + 481267.8813*T;   // mean longitude
+  const Dm = 297.8502 + 445267.1115*T;   // mean elongation
+  const M  = 134.9634 + 477198.8676*T;   // moon mean anomaly
+  const Ms = 357.5291 +  35999.0503*T;   // sun mean anomaly
+  const F  =  93.2721 + 483202.0175*T;   // argument of latitude
+  const lam = Lp + 6.289*s(M) + 1.274*s(2*Dm-M) + 0.658*s(2*Dm) + 0.214*s(2*M)
+            - 0.186*s(Ms) - 0.114*s(2*F) + 0.059*s(2*Dm-2*M) + 0.057*s(2*Dm-M-Ms);
+  const bet = 5.128*s(F) + 0.281*s(M+F) - 0.278*s(F-M) - 0.173*s(F-2*Dm);
+  const dist = 385001 - 20905*c(M) - 3699*c(2*Dm-M) - 2956*c(2*Dm) - 570*c(2*M);
+  return {lam, bet, dist, jd};
+}
+
+function sunLambda(date){
+  const n = date.getTime()/86400000 + 2440587.5 - 2451545.0;
+  const g = (357.528 + 0.9856003*n) * D;
+  return 280.460 + 0.9856474*n + 1.915*Math.sin(g) + 0.020*Math.sin(2*g);
+}
+
+function moonEci(date){
+  const m = moonEcl(date);
+  const eps = (23.4393 - 0.0000004*(m.jd - 2451545)) * D;
+  const cb = Math.cos(m.bet*D), sb = Math.sin(m.bet*D);
+  const cl = Math.cos(m.lam*D), sl = Math.sin(m.lam*D);
+  return { x: m.dist*cb*cl,
+           y: m.dist*(cb*sl*Math.cos(eps) - sb*Math.sin(eps)),
+           z: m.dist*(cb*sl*Math.sin(eps) + sb*Math.cos(eps)) };
+}
+
+/** Illuminated fraction, and which limb is lit. */
+function moonPhase(date){
+  const m = moonEcl(date);
+  const elong = ((m.lam - sunLambda(date)) % 360 + 360) % 360;
+  const k = (1 - Math.cos(elong*D)) / 2;       // 0 new, 1 full
+  return { k, waxing: elong < 180, elong };
+}
+
+/* Terrain. Landmarks are computed from the observer rather than hard-coded, so
+   moving OBSERVER keeps them honest. Curvature uses the 7/6-Earth-radius
+   refraction approximation. */
+const LANDMARKS = [
+  { name:'RAINIER', lat:46.8523, lon:-121.7603, height:4392, width:16,
+    profile:[[-1,0],[-0.72,0.30],[-0.40,0.62],[-0.16,0.94],[0.05,1],[0.30,0.82],[0.60,0.44],[1,0]] }
+];
+
+function landmarkAzEl(L){
+  const Re = 6371000;
+  const la1 = observer.lat*D, lo1 = observer.lon*D, la2 = L.lat*D, lo2 = L.lon*D;
+  const dist = 2*Re*Math.asin(Math.sqrt(
+    Math.sin((la2-la1)/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin((lo2-lo1)/2)**2));
+  const y = Math.sin(lo2-lo1)*Math.cos(la2);
+  const x = Math.cos(la1)*Math.sin(la2) - Math.sin(la1)*Math.cos(la2)*Math.cos(lo2-lo1);
+  const az = (Math.atan2(y,x)*R + 360) % 360;
+  const drop = dist*dist / (2 * (7/6) * Re);
+  const el = Math.atan2(L.height - 100 - drop, dist) * R;
+  return { az, el, dist };
+}
+
+/** Silhouette sitting on the horizon ring, drawn in the rim's own frame. */
+function drawTerrain(g){
+  for(const L of LANDMARKS){
+    // NB: do not destructure this as `el` — that shadows the element helper.
+    const {az, el: elev} = landmarkAzEl(L);
+    if(elev <= 0) continue;
+    const [px,py] = project(az, 0);
+    const halfW = (L.width/2) * (2*Math.PI*RAD/360);   // arc length per degree
+    const peak  = RAD * elev/90;                        // px above the horizon ring
+    const pts = L.profile.map(([fx,fy]) => [(fx*halfW).toFixed(1), (-fy*peak).toFixed(2)].join(','));
+    const t = 'translate('+px.toFixed(1)+','+py.toFixed(1)+') rotate('+az.toFixed(2)+')';
+    const grp = el('g',{transform:t, class:'terrain'});
+    grp.appendChild(el('polygon',{points:pts.join(' '), fill:'rgba(34,224,255,.16)',
+      stroke:'var(--ice)','stroke-width':1.6,'stroke-linejoin':'round',
+      'stroke-linecap':'round', opacity:.95, filter:'url(#neon)'}));
+    // one contour, so it reads as a mountain rather than a wedge
+    grp.appendChild(el('polyline',{
+      points:[(-halfW*0.62).toFixed(1)+','+(-peak*0.20).toFixed(2),
+              (0.05*halfW).toFixed(1)+','+(-peak*0.62).toFixed(2),
+              (halfW*0.66).toFixed(1)+','+(-peak*0.24).toFixed(2)].join(' '),
+      fill:'none', stroke:'var(--ice)','stroke-width':1, opacity:.5}));
+    grp.appendChild(el('text',{x:0, y:13, 'text-anchor':'middle', class:'terrainlabel'}, L.name));
+    g.appendChild(grp);
+  }
+}
+
+/** The Moon, oversized on purpose — at true scale it would be one pixel. */
+function drawMoon(layer, now, gmst){
+  const eciM = moonEci(now);
+  const la = SGP.ecfToLookAngles(observerGd(), SGP.eciToEcf(eciM, gmst));
+  const elv = la.elevation*R, azm = la.azimuth*R;
+  if(elv < -1) return null;
+
+  const {k, waxing} = moonPhase(now);
+  const [x,y] = project(azm, Math.max(elv,0));
+  const r = 11;
+  const g = el('g',{transform:'translate('+x.toFixed(1)+','+y.toFixed(1)+')', filter:'url(#neon)'});
+
+  g.appendChild(el('circle',{cx:0,cy:0,r:r+5,fill:'var(--ice)',opacity:.07}));
+  g.appendChild(el('circle',{cx:0,cy:0,r:r,fill:'#06141C',stroke:'var(--ice)',
+    'stroke-width':1.2,opacity:.9}));
+
+  if(k > 0.02){
+    const rx = (r * Math.abs(1 - 2*k)).toFixed(2);
+    const outer = waxing ? 1 : 0;
+    const inner = (k > 0.5) ? outer : 1 - outer;
+    g.appendChild(el('path',{
+      d:'M0,'+(-r)+' A'+r+','+r+' 0 0,'+outer+' 0,'+r+' A'+rx+','+r+' 0 0,'+inner+' 0,'+(-r)+' Z',
+      fill:'#BFF2FF', opacity:.92
+    }));
+  }
+  layer.appendChild(g);
+
+  const lab = el('text',{x:x, y:(y + r + 13).toFixed(1), 'text-anchor':'middle', class:'moonlabel'},
+    'MOON \u00B7 ' + Math.round(k*100) + '%');
+  layer.appendChild(lab);
+  return {x, y, r};
+}
+
+const PLAY_GLYPH  = '<svg class="gl" viewBox="0 0 12 14" aria-hidden="true"><path d="M2 1.2 L11 7 L2 12.8 Z" fill="currentColor"/></svg>';
+const PAUSE_GLYPH = '<svg class="gl" viewBox="0 0 12 14" aria-hidden="true"><rect x="2.2" y="1.4" width="3" height="11.2" fill="currentColor"/><rect x="6.8" y="1.4" width="3" height="11.2" fill="currentColor"/></svg>';
+
+/* ===================== distance flown =====================
+   Derived, not claimed: orbital speed comes from the element set, elapsed time
+   from the SATCAT launch date. Both are catalog values. The figure is an
+   approximation — it assumes a near-circular orbit at today's altitude for the
+   whole life of the spacecraft, and ignores drag, orbit raises and maneuvers. */
+function orbitalSpeed(line2){
+  const revday = parseFloat(line2.slice(52,63));
+  if(!isFinite(revday) || revday <= 0) return null;
+  const nrad = revday * 2*Math.PI / 86400;          // rad/s
+  const a = Math.cbrt(398600.4418 / (nrad*nrad));   // km
+  return Math.sqrt(398600.4418 / a);                // km/s
+}
+
+function kmFlown(sat){
+  if(!sat.launched) return 0;
+  const t0 = Date.parse(sat.launched);
+  if(!isFinite(t0)) return 0;
+  const v = orbitalSpeed(sat.line2);
+  if(!v) return 0;
+  return v * Math.max(0, (Date.now() - t0) / 1000);
+}
+
+/* A number this size means nothing on its own. Pick whichever comparison lands
+   at a countable figure — laps, then Moon trips, then trips to the Sun. */
+const EARTH_LAP = 40075, MOON_RT = 768800, SUN_RT = 299195741.4;
+function nfmt(x){ return Math.round(x).toLocaleString('en-US'); }
+function scaleOf(km){
+  if(km < 4e6) return nfmt(km/EARTH_LAP) + ' laps around the Earth';
+  if(km < 4e9) return nfmt(km/MOON_RT)   + ' round trips to the Moon';
+  return nfmt(km/SUN_RT) + ' round trips to the Sun';
+}
+function bigKm(km){
+  if(km >= 1e9) return (km/1e9).toFixed(km >= 1e10 ? 0 : 1) + ' billion km';
+  if(km >= 1e6) return (km/1e6).toFixed(0) + ' million km';
+  return nfmt(km) + ' km';
+}
+
+/* Live odometer. The base figure is computed once; after that it accrues at the
+   fleet's combined orbital speed — a few hundred km every second for this roster.
+   Driven by real time, not the scrubber: this is distance actually flown, so it
+   must not leap forward when you preview a pass or run backwards on reset. */
+let odoBase = 0, odoSpeed = 0, odoT0 = 0, odoCount = 0;
+
+function computeOdometer(){
+  const dated = SATS.filter(s => s.launched);
+  odoCount = dated.length;
+  odoSpeed = dated.reduce((sum, s) => sum + (orbitalSpeed(s.line2) || 0), 0);
+  odoBase  = dated.reduce((sum, s) => sum + kmFlown(s), 0);
+  odoT0    = Date.now();
+  tickOdometer();
+}
+
+function tickOdometer(){
+  const box = $('#odo');
+  if(!box) return;
+  if(!odoCount || odoBase <= 0){ box.innerHTML = ''; return; }
+  const km = odoBase + odoSpeed * (Date.now() - odoT0) / 1000;
+  box.innerHTML =
+    '<span class="lab">Washington-built \u00B7 distance flown</span>' +
+    '<span class="km">' + nfmt(km) + ' km<sup>*</sup></span>' +
+    '<span class="sc">' + scaleOf(km) + '</span>';
+}
+
+/* ============================== rendering ============================== */
+const SVG='http://www.w3.org/2000/svg';
+const CX=280, CY=250, RAD=206;   // dome geometry: center is zenith, RAD is the horizon
+/* viewBox cropped to the drawn extent — the old 560x480 carried 100px of empty
+   margin, which on width-limited screens shrank the dome for nothing. Label
+   bounds are derived from this rather than hard-coded, so the two cannot drift. */
+const VB = {x:36, y:14, w:488, h:470};
+
+/* Flat, saturated, one per operator — a sticker-book sky rather than a radar
+   screen. Sunlit objects get full color; shadowed ones drop to the cold blue,
+   so the meaningful distinction survives the paint job. */
+const OPCOLOR = {
+  'Starfish Space':'#FF3D9A',
+  'Starcloud':'#4DFFC3',
+  'Loft Orbital':'#B36BFF',
+  'Spaceflight Inc.':'#FF5F5F',
+  'University of Washington':'#9BFF3D',
+  'Xplore':'#4DFF88',
+  'Hubble Network':'#C77DFF',
+  'BlackSky':'#FFE23D',
+  'SpaceX':'#22E0FF',
+  'Amazon':'#FF8A1E',
+  'Spent upper stages':'#8FA9B8',
+  _:'#5F8FA6'
+};
+
+/* Seeding from GCAT will surface builders this table has never heard of. Without
+   this they would all render in the same fallback grey — indistinguishable on the
+   dome and a column of identical swatches in the key. Hash the name to a hue so
+   every operator gets a stable, distinct color, in the same neon register. */
+function opColor(op){
+  if(OPCOLOR[op]) return OPCOLOR[op];
+  if(!op) return OPCOLOR._;
+  // FNV-1a with an avalanche finish. A naive char-code hash clustered badly —
+  // five of nine test names landed within six degrees of each other.
+  let x = 2166136261 >>> 0;
+  for(let i = 0; i < op.length; i++){ x ^= op.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; }
+  x ^= x >>> 16; x = Math.imul(x, 2246822519) >>> 0;
+  x ^= x >>> 13; x = Math.imul(x, 3266489909) >>> 0; x ^= x >>> 16;
+  // Golden-angle spread, mapped into 55–355deg so a generated color never lands
+  // in the amber band that means "sunlit" everywhere else in this interface.
+  const t = (((x % 997) * 137.508) % 360 + 360) % 360;
+  return 'hsl(' + Math.round(55 + t / 360 * 300) + ' 92% 68%)';
+}
+
+function el(tag, attrs, text){
+  const n = document.createElementNS(SVG, tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  if(text!=null) n.textContent = text;
+  return n;
+}
+function project(azDeg, elDeg){
+  const r = RAD * (90 - Math.max(elDeg,0)) / 90;
+  const a = azDeg * D;
+  return [CX + r*Math.sin(a), CY - r*Math.cos(a)];
+}
+
+function drawFrame(){
+  const g = el('g',{});
+  // Everything on the grid emits light. Applied only to lit craft and the
+  // horizon, because a blur filter on every object is a framerate problem.
+  const defs = el('defs',{});
+  const f = el('filter',{id:'neon',x:'-70%',y:'-70%',width:'240%',height:'240%'});
+  f.appendChild(el('feGaussianBlur',{stdDeviation:'2.4',result:'b'}));
+  const mg = el('feMerge',{});
+  mg.appendChild(el('feMergeNode',{in:'b'}));
+  mg.appendChild(el('feMergeNode',{in:'b'}));
+  mg.appendChild(el('feMergeNode',{in:'SourceGraphic'}));
+  f.appendChild(mg);
+  defs.appendChild(f);
+  g.appendChild(defs);
+  // Ambient starfield. Deterministic so it doesn't reshuffle on redraw.
+  let seed = 20260928;
+  const rnd = ()=>{ seed = (seed*1664525 + 1013904223) % 4294967296; return seed/4294967296; };
+  for(let i=0;i<170;i++){
+    const a = rnd()*Math.PI*2, rr = Math.sqrt(rnd())*RAD;
+    const sx = CX+rr*Math.cos(a), sy = CY+rr*Math.sin(a);
+    const o = (0.06+rnd()*0.26).toFixed(2);
+    if(rnd() < 0.12){
+      const k = 1.8+rnd()*1.6;   // a few four-point twinkles
+      g.appendChild(el('path',{
+        d:'M0,-'+k+' Q0.5,-0.5 '+k+',0 Q0.5,0.5 0,'+k+' Q-0.5,0.5 -'+k+',0 Q-0.5,-0.5 0,-'+k+' Z',
+        transform:'translate('+sx.toFixed(1)+','+sy.toFixed(1)+')',
+        class:'star', opacity:o, style:'animation:twinkle '+(2.4+rnd()*3).toFixed(1)+'s ease-in-out infinite'
+      }));
+    }else{
+      g.appendChild(el('circle',{cx:sx.toFixed(1), cy:sy.toFixed(1),
+        r:(0.4+rnd()*0.9).toFixed(2), class:'star', opacity:o}));
+    }
+  }
+  [30,60].forEach(e=>{
+    g.appendChild(el('circle',{cx:CX,cy:CY,r:RAD*(90-e)/90,class:'ring'}));
+    g.appendChild(el('text',{x:CX+3,y:CY-RAD*(90-e)/90-4,class:'elabel'}, e+'\u00B0'));
+  });
+  g.appendChild(el('circle',{cx:CX,cy:CY,r:RAD,class:'ring horizon'}));
+  for(let a=0;a<360;a+=45){
+    const [x,y]=project(a,0);
+    g.appendChild(el('line',{x1:CX,y1:CY,x2:x,y2:y,class:'spoke'}));
+  }
+  [['N',0],['E',90],['S',180],['W',270]].forEach(([lbl,a])=>{
+    const r = RAD+22, rad=a*D;
+    g.appendChild(el('text',{x:CX + r*Math.sin(rad), y:CY - r*Math.cos(rad)+4,
+      'text-anchor':'middle', class:'cardinal'}, lbl));
+  });
+  drawTerrain(g);
+  g.appendChild(el('circle',{cx:CX,cy:CY,r:2,fill:'var(--dimmer)'}));
+  g.appendChild(el('text',{x:CX,y:CY-8,'text-anchor':'middle',class:'elabel'},'ZENITH'));
+  return g;
+}
+
+/* Classification drives shape; operator drives color. A tumbling upper stage
+   should not look like a broadband slab, and a student cubesat should not look
+   like a servicing vehicle. All drawn pointing along +x and rotated to heading. */
+function classOf(o){
+  if(o.cls) return o.cls;
+  const k = (o.kind||'').toLowerCase(), n = (o.name||'').toUpperCase();
+  if(/\bR\/B\b|ROCKET BODY/.test(n))                  return 'rocketbody';
+  if(k.includes('cubesat'))                            return 'cubesat';
+  if(k.includes('data cent'))                          return 'datacenter';
+  if(k.includes('servicing'))                          return 'servicer';
+  if(k.includes('transfer'))                           return 'tug';
+  if(k.includes('imaging')||k.includes('hyperspectral')) return 'imaging';
+  if(k.includes('broadband'))                          return 'broadband';
+  if(k.includes('relay'))                              return 'relay';
+  if(k.includes('bus'))                                return 'bus';
+  return 'sat';
+}
+const CLASS_LABEL = {
+  sat:'Satellite', broadband:'Broadband slab', imaging:'Earth imager',
+  servicer:'Servicer', tug:'Orbital tug', datacenter:'Orbital data center',
+  cubesat:'Cubesat', relay:'Relay payload', bus:'Hosted-payload bus',
+  rocketbody:'Spent rocket stage'
+};
+
+/* Each shape builder appends into a <g> already translated and rotated. */
+const SHAPES = {
+  broadband(g, F, W, O, op){            // flat slab + one big array
+    g.appendChild(el('rect',{x:-8,y:-9.5,width:16,height:6,rx:1.5,fill:W,stroke:O,'stroke-width':1.7,opacity:op}));
+    g.appendChild(el('line',{x1:0,y1:-3.5,x2:0,y2:-1.6,stroke:O,'stroke-width':1.6,opacity:op}));
+    g.appendChild(el('rect',{x:-10,y:-2,width:20,height:4.4,rx:2,fill:F,stroke:O,'stroke-width':1.8,opacity:op}));
+  },
+  imaging(g, F, W, O, op){              // body + telescope barrel looking down
+    g.appendChild(el('rect',{x:-11,y:-3,width:5.5,height:6,rx:1.5,fill:W,stroke:O,'stroke-width':1.6,opacity:op}));
+    g.appendChild(el('rect',{x:5.5,y:-3,width:5.5,height:6,rx:1.5,fill:W,stroke:O,'stroke-width':1.6,opacity:op}));
+    g.appendChild(el('rect',{x:-5,y:-5,width:10,height:9,rx:2.4,fill:F,stroke:O,'stroke-width':1.9,opacity:op}));
+    g.appendChild(el('rect',{x:-2.6,y:3.5,width:5.2,height:5.5,rx:1.4,fill:F,stroke:O,'stroke-width':1.6,opacity:op}));
+    g.appendChild(el('circle',{cx:0,cy:9,r:2.1,fill:'#FFFFFF',stroke:O,'stroke-width':1.4,opacity:op}));
+  },
+  servicer(g, F, W, O, op){             // body + docking claw at the front
+    g.appendChild(el('rect',{x:-11,y:-3,width:5.5,height:6,rx:1.5,fill:W,stroke:O,'stroke-width':1.6,opacity:op}));
+    g.appendChild(el('rect',{x:-5,y:-4.4,width:9,height:8.8,rx:2.4,fill:F,stroke:O,'stroke-width':1.9,opacity:op}));
+    g.appendChild(el('path',{d:'M4,-3 Q10,-4.5 11.5,-7.5',fill:'none',stroke:O,'stroke-width':1.9,'stroke-linecap':'round',opacity:op}));
+    g.appendChild(el('path',{d:'M4,3 Q10,4.5 11.5,7.5',fill:'none',stroke:O,'stroke-width':1.9,'stroke-linecap':'round',opacity:op}));
+    g.appendChild(el('circle',{cx:11.5,cy:-7.5,r:1.8,fill:F,stroke:O,'stroke-width':1.4,opacity:op}));
+    g.appendChild(el('circle',{cx:11.5,cy:7.5,r:1.8,fill:F,stroke:O,'stroke-width':1.4,opacity:op}));
+  },
+  tug(g, F, W, O, op){                  // broad carrier with a thruster flare
+    g.appendChild(el('path',{d:'M-7,-6 L8,-3.4 L8,3.4 L-7,6 Z',fill:F,stroke:O,'stroke-width':1.9,'stroke-linejoin':'round',opacity:op}));
+    g.appendChild(el('path',{d:'M-7,-3 L-13,0 L-7,3 Z',fill:'var(--sodium)',stroke:O,'stroke-width':1.4,opacity:op*0.9}));
+    g.appendChild(el('line',{x1:0,y1:-5,x2:0,y2:5,stroke:O,'stroke-width':1.3,opacity:op*0.7}));
+  },
+  datacenter(g, F, W, O, op){           // stacked radiator fins
+    for(const dy of [-8.5, 8.5-4.5]){
+      g.appendChild(el('rect',{x:-9,y:dy,width:18,height:4.5,rx:1.2,fill:W,stroke:O,'stroke-width':1.6,opacity:op}));
+    }
+    g.appendChild(el('rect',{x:-5.5,y:-4,width:11,height:8,rx:2,fill:F,stroke:O,'stroke-width':1.9,opacity:op}));
+    g.appendChild(el('line',{x1:-2.5,y1:-1.4,x2:2.5,y2:-1.4,stroke:O,'stroke-width':1.3,opacity:op}));
+    g.appendChild(el('line',{x1:-2.5,y1:1.4,x2:2.5,y2:1.4,stroke:O,'stroke-width':1.3,opacity:op}));
+  },
+  cubesat(g, F, W, O, op){              // small box, one panel
+    g.appendChild(el('rect',{x:-10,y:-2.6,width:5,height:5.2,rx:1.2,fill:W,stroke:O,'stroke-width':1.6,opacity:op}));
+    g.appendChild(el('rect',{x:-3.6,y:-3.6,width:7.2,height:7.2,rx:1.6,fill:F,stroke:O,'stroke-width':1.9,opacity:op}));
+  },
+  rocketbody(g, F, W, O, op){           // plain cylinder and a nozzle
+    g.appendChild(el('rect',{x:-9,y:-3.6,width:18,height:7.2,rx:3.6,fill:'#7C8FA3',stroke:O,'stroke-width':1.9,opacity:op}));
+    g.appendChild(el('path',{d:'M-9,-3.4 L-13.5,-5.6 L-13.5,5.6 L-9,3.4 Z',fill:'#5E7285',stroke:O,'stroke-width':1.6,'stroke-linejoin':'round',opacity:op}));
+    g.appendChild(el('line',{x1:2,y1:-3.4,x2:2,y2:3.4,stroke:O,'stroke-width':1.4,opacity:op*0.8}));
+  },
+  sat(g, F, W, O, op){                  // body, two wings, a dish
+    g.appendChild(el('rect',{x:-12,y:-3.4,width:7.5,height:6.8,rx:1.6,fill:W,stroke:O,'stroke-width':1.7,opacity:op}));
+    g.appendChild(el('rect',{x:4.5,y:-3.4,width:7.5,height:6.8,rx:1.6,fill:W,stroke:O,'stroke-width':1.7,opacity:op}));
+    g.appendChild(el('line',{x1:-5,y1:0,x2:5,y2:0,stroke:O,'stroke-width':1.8,'stroke-linecap':'round',opacity:op}));
+    g.appendChild(el('rect',{x:-4.2,y:-4.6,width:8.4,height:9.2,rx:2.6,fill:F,stroke:O,'stroke-width':1.9,opacity:op}));
+    g.appendChild(el('circle',{cx:2.4,cy:0,r:2.2,fill:'#FFFFFF',stroke:O,'stroke-width':1.5,opacity:op*0.95}));
+  }
+};
+SHAPES.relay = SHAPES.sat;
+SHAPES.bus   = SHAPES.sat;
+
+const OUTLINE = '#04070C';
+
+function drawCraft(layer, x, y, headingDeg, tint, lit, elev, cls, spin){
+  const s = lit ? 1 : 0.62;
+  // A spent stage tumbles; everything else holds attitude.
+  const rot = headingDeg + (cls === 'rocketbody' ? (spin||0) : 0);
+  const g = el('g',{transform:'translate('+x.toFixed(1)+','+y.toFixed(1)+') rotate('+rot.toFixed(1)+') scale('+s+')'});
+  const F = lit ? tint : '#2C5468';
+  const W = lit ? tint : '#1E3F52';
+  const op = lit ? 1 : 0.85;
+
+  if(lit){
+    g.setAttribute('filter','url(#neon)');
+    g.appendChild(el('circle',{cx:0,cy:0,r:16,fill:tint,opacity:.15,class:'halo'}));
+  }
+  (SHAPES[cls] || SHAPES.sat)(g, F, W, OUTLINE, op);
+  layer.appendChild(g);
+
+  if(lit && elev > 25){
+    const tw = 3.2 + Math.sin(Date.now()/260 + x) * 1.4;
+    layer.appendChild(el('path',{
+      d:'M0,-'+tw+' Q0.7,-0.7 '+tw+',0 Q0.7,0.7 0,'+tw+' Q-0.7,0.7 -'+tw+',0 Q-0.7,-0.7 0,-'+tw+' Z',
+      fill:'#FFFFFF', opacity:.85,
+      transform:'translate('+(x+11).toFixed(1)+','+(y-10).toFixed(1)+')'
+    }));
+  }
+}
+
+/* Lay out name plates so they follow a craft for its whole pass without
+   stacking on top of each other. Highest objects get first choice of position,
+   then each one takes the first slot that is clear and still on the canvas.
+   Anything with nowhere to go is dropped rather than drawn illegibly. */
+function placeLabels(queue, reserved){
+  const placed = reserved ? [reserved] : [];
+  const hits = b => b.x < VB.x+2 || b.y < VB.y+2 ||
+    b.x+b.w > VB.x+VB.w-2 || b.y+b.h > VB.y+VB.h-2 ||
+    placed.some(q => b.x < q.x+q.w && b.x+b.w > q.x && b.y < q.y+q.h && b.y+b.h > q.y);
+
+  queue.sort((a,b) => b.el - a.el);
+
+  for(const it of queue){
+    const w = it.name.length*5.3 + 13, hh = 15;
+    const slots = [
+      {x: it.x+16,      y: it.y-7.5,  lead:false},
+      {x: it.x-16-w,    y: it.y-7.5,  lead:false},
+      {x: it.x-w/2,     y: it.y-26,   lead:true},
+      {x: it.x-w/2,     y: it.y+11,   lead:true},
+      {x: it.x+16,      y: it.y-25,   lead:true},
+      {x: it.x-16-w,    y: it.y+10,   lead:true}
+    ];
+    let slot = null;
+    for(const s of slots){ if(!hits({x:s.x,y:s.y,w,h:hh})){ slot = s; break; } }
+    if(!slot) continue;
+    placed.push({x:slot.x, y:slot.y, w, h:hh});
+
+    if(slot.lead){
+      liveLayer.appendChild(el('line',{
+        x1:it.x.toFixed(1), y1:it.y.toFixed(1),
+        x2:(slot.x+w/2).toFixed(1), y2:(slot.y + (slot.y > it.y ? 0 : hh)).toFixed(1),
+        stroke: it.lit ? it.tint : 'var(--dimmer)', 'stroke-width':1,
+        'stroke-opacity': it.lit ? .5 : .3
+      }));
+    }
+    liveLayer.appendChild(el('rect',{
+      x:slot.x.toFixed(1), y:slot.y.toFixed(1), width:w.toFixed(1), height:hh, rx:7.5,
+      fill:'var(--deep)', stroke: it.lit ? it.tint : 'var(--rule)',
+      'stroke-width': it.lit ? 1.5 : 1, opacity: it.lit ? .96 : .8
+    }));
+    liveLayer.appendChild(el('text',{
+      x:(slot.x+w/2).toFixed(1), y:(slot.y+10.5).toFixed(1), 'text-anchor':'middle',
+      class:'satlabel'+(it.lit?' vis':''),
+      style: it.lit ? ('fill:'+it.tint) : 'fill:var(--dim)'
+    }, it.name));
+  }
+}
+
+let liveLayer = null;
+function drawLive(){
+  const svg = $('#dome');
+  if(!liveLayer){ liveLayer = el('g',{}); svg.appendChild(liveLayer); }
+  while(liveLayer.firstChild) liveLayer.removeChild(liveLayer.firstChild);
+
+  const now = simNow();
+  const gmst = SGP.gstime(now);
+  const sun = sunEci(now);
+  const sunEl = sunElevation(now, gmst);
+  const dark = sunEl < -6;
+  let up = 0, vis = 0;
+
+  const moon = drawMoon(liveLayer, now, gmst);
+
+  const shown = SATS.filter(s => filter==='ALL' || s.operator===filter);
+  const labelQueue = [];
+
+  for(const s of shown){
+    const l = look(s.satrec, now, gmst);
+    if(!l || l.el < 0) continue;
+    up++;
+    const lit = dark && sunlit(l.eci, sun);
+    if(lit) vis++;
+
+    const tint = opColor(s.operator);
+    const [x0,y0] = project(l.az, l.el);
+
+    // Gentle bob, phase-shifted per object so the sky doesn't pulse in unison.
+    const bob = Math.sin(now.getTime()/900 + (s.phase||0)) * (lit ? 1.1 : 0.5);
+    const x = x0, y = y0 + bob;
+
+    if(l.el >= MIN_EL){
+      // Where it has been: chunky dots shrinking away behind it.
+      for(let m=-1;m>=-6;m--){
+        const t = new Date(now.getTime()+m*60000);
+        const l2 = look(s.satrec, t, SGP.gstime(t));
+        if(!l2 || l2.el < 0) break;
+        const [px,py] = project(l2.az, l2.el);
+        const k = 1 + m/7;
+        liveLayer.appendChild(el('circle',{
+          cx:px.toFixed(1), cy:py.toFixed(1), r:(3.6*k).toFixed(2),
+          fill: lit ? tint : 'var(--ice)',
+          opacity: ((lit?0.5:0.22)*k).toFixed(2)
+        }));
+      }
+      // Where it is going: a dashed guide line.
+      const fwd=[];
+      for(let m=0;m<=9;m++){
+        const t = new Date(now.getTime()+m*60000);
+        const l2 = look(s.satrec, t, SGP.gstime(t));
+        if(!l2 || l2.el < -1) break;
+        fwd.push(project(l2.az, Math.max(l2.el,0)).map(v=>v.toFixed(1)).join(','));
+      }
+      if(fwd.length>1){
+        liveLayer.appendChild(el('polyline',{
+          points:fwd.join(' '), fill:'none',
+          stroke: lit ? tint : 'var(--ice)',
+          'stroke-width': lit ? 2 : 1.2, 'stroke-linecap':'round',
+          'stroke-dasharray':'1 6', 'stroke-opacity': lit ? 0.75 : 0.3
+        }));
+      }
+    }
+
+    // Heading in screen space, so the craft points where it is actually going.
+    const tAhead = new Date(now.getTime()+60000);
+    const la = look(s.satrec, tAhead, SGP.gstime(tAhead));
+    let head = 0;
+    if(la && la.el > -5){
+      const [ax,ay] = project(la.az, Math.max(la.el,0));
+      head = Math.atan2(ay-y0, ax-x0) * 180/Math.PI;
+    }
+
+    const spin = s.cls === 'rocketbody' ? (now.getTime()/24 + (s.phase||0)*57) % 360 : 0;
+    drawCraft(liveLayer, x, y, head, tint, lit, l.el, s.cls, spin);
+    // Every craft carries its name for the whole time it is up. Queued rather
+    // than drawn here so the plates can be laid out together and land on top.
+    if(l.el >= MIN_EL) labelQueue.push({x, y, name:s.name, lit, tint, el:l.el});
+  }
+
+  placeLabels(labelQueue, moon
+    ? {x:moon.x-moon.r-4, y:moon.y-moon.r-4, w:moon.r*2+8, h:moon.r*2+24}
+    : null);
+
+  const total = shown.length;
+}
+
+function renderCallout(){
+  const box = $('#callout');
+  const now = simNow().getTime();
+  const mine = p => filter==='ALL' || p.sat.operator===filter;
+
+  const soon = passes.filter(p => p.peak > now && p.visible && p.el >= 25).filter(mine);
+  const fallback = passes.filter(p => p.peak > now && p.el >= 40).filter(mine)[0];
+  const p = soon[0] || fallback;
+  if(!p){ box.innerHTML = ''; return; }
+
+  const worthGoing = !!soon[0];
+  const mins = Math.round((p.peak - now)/60000);
+  // "Next visible pass" is the resting state. "Go outside" is reserved for the
+  // ten-minute window where it is an instruction rather than a description —
+  // used more freely it stops meaning anything.
+  const label = !worthGoing ? 'Best pass'
+              : mins <= 10  ? 'Go outside'
+              :               'Next visible pass';
+  const when = mins < 60 ? 'in ' + mins + ' min'
+             : mins < 600 ? 'in ' + Math.round(mins/60) + 'h' : '';
+
+  // One row: the cue, the time, where to look, what it is, and a way to preview it.
+  box.innerHTML =
+    '<div class="callout' + (worthGoing ? '' : ' empty') + '">' +
+      '<span class="k">' + label + '</span>' +
+      '<span class="t">' + fmtTime(p.peak) + fmtDayIfNeeded(p.peak) +
+        (when ? '<span class="rel">' + when + '</span>' : '') +
+      '</span>' +
+      '<span class="dir">Look ' + compass(p.az) + ', ' + Math.round(p.el) + '&deg; up' +
+        (worthGoing ? '' : ' <span class="q">not sunlit</span>') + '</span>' +
+      '<span class="who">' + p.sat.name + '</span>' +
+      '<button class="chip watch" onclick="previewPass(' + p.start.getTime() + ')">' +
+        '<span>Watch it cross</span>' + PLAY_GLYPH + '</button>' +
+    '</div>';
+}
+
+function renderPasses(){
+  const tb = $('#passes');
+  tb.innerHTML = '';
+  const now = simNow().getTime();
+  $('#passcount').textContent = 'Calculating…';
+  /* Count first, cap second. The render limit used to be applied before counting,
+     so past 40 passes the header and the button both reported the cap instead of
+     the truth — "40 in the next 14 hours · Show 35 more" no matter how many there
+     really were. */
+  const all = passes.filter(p => p.peak > now)
+                    .filter(p => filter==='ALL' || p.sat.operator===filter);
+  $('#passcount').textContent = all.length + ' in the next ' + HORIZON_H + ' hours · ' +
+    all.filter(r=>r.visible).length + ' visible';
+
+  const renderable = Math.min(all.length, PASS_RENDER_CAP);
+  passesShown = Math.min(Math.max(passesShown, PASS_PREVIEW), Math.max(renderable, PASS_PREVIEW));
+  const rows = all.slice(0, passesShown);
+
+  const btn = $('#showmore');
+  if(btn){
+    if(renderable > PASS_PREVIEW){
+      btn.style.display = '';
+      // Reveals five at a time; once everything is out, the same control collapses.
+      btn.textContent = passesShown < renderable ? 'View more' : 'Show less';
+      btn.setAttribute('aria-expanded', String(passesShown > PASS_PREVIEW));
+    }else{
+      btn.style.display = 'none';
+      passesShown = PASS_PREVIEW;
+    }
+  }
+
+  for(const p of rows){
+    const tr = document.createElement('tr');
+    if(p.visible) tr.className = 'vis';
+    tr.tabIndex = 0;
+    tr.title = 'Watch this pass on the dome';
+    tr.onclick = ()=> previewPass(p.start.getTime());
+    tr.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); previewPass(p.start.getTime()); } };
+    const dur = Math.round((p.end - p.start)/60000);
+    tr.innerHTML =
+      '<td class="t">' + fmtTime(p.peak) + fmtDayIfNeeded(p.peak) +
+        (p.visible ? '<span class="badge">visible</span>' : '') + '</td>' +
+      '<td class="nm">' + p.sat.name +
+        '<small>' + p.sat.operator + (p.sat.built ? ' · ' + p.sat.built : '') + '</small></td>' +
+      '<td class="num">' + Math.round(p.el) + '°' +
+        '<span class="arc"><span style="width:' + Math.round(p.el/90*100) + '%"></span></span></td>' +
+      '<td class="num">' + compass(p.az) + '</td>' +
+      '<td class="num">' + dur + ' min</td>';
+    tb.appendChild(tr);
+  }
+  if(passesShown >= PASS_RENDER_CAP && all.length > PASS_RENDER_CAP){
+    const tr = document.createElement('tr');
+    tr.className = 'capnote';
+    tr.innerHTML = '<td colspan="5">Showing the first ' + PASS_RENDER_CAP +
+      ' of ' + all.length + '. Filter by operator to narrow the list.</td>';
+    tb.appendChild(tr);
+  }
+
+  if(!all.length){
+    tb.innerHTML = '<tr><td colspan="5" style="color:var(--dimmer);padding:22px 8px">' +
+      'Nothing clears ' + MIN_EL + '° for this filter in the next ' + HORIZON_H + ' hours. Try another operator.</td></tr>';
+  }
+}
+
+$('#showmore').onclick = function(){
+  const now = simNow().getTime();
+  const total = passes.filter(p => p.peak > now)
+                      .filter(p => filter==='ALL' || p.sat.operator===filter).length;
+  const renderable = Math.min(total, PASS_RENDER_CAP);
+  const collapsing = passesShown >= renderable;
+  passesShown = collapsing ? PASS_PREVIEW : Math.min(passesShown + PASS_PREVIEW, renderable);
+  renderPasses();
+  // Collapsing from the foot of a long list would strand the viewport in
+  // whitespace, so bring the section header back into view.
+  if(collapsing) this.closest('.sect').scrollIntoView({behavior:'smooth', block:'start'});
+};
+
+/* ============================== controls ============================== */
+/* Legend drawn with the same builders as the dome — a key that can drift from
+   the thing it explains is worse than none. Three separate questions get three
+   separate groups: how bright, what kind, and whose. */
+function glyph(cls, tint, lit, w, hgt){
+  const svg = document.createElementNS(SVG,'svg');
+  svg.setAttribute('viewBox','-17 -13 34 26');
+  svg.setAttribute('width', w); svg.setAttribute('height', hgt);
+  const g = el('g',{});
+  const F = lit ? tint : '#2C5468';
+  const W = lit ? tint : '#1E3F52';
+  (SHAPES[cls] || SHAPES.sat)(g, F, W, OUTLINE, lit ? 1 : .85);
+  svg.appendChild(g);
+  return svg;
+}
+function litem(node, label, count){
+  const s = document.createElement('span');
+  s.className = 'litem';
+  s.appendChild(node);
+  const t = document.createElement('span');
+  t.textContent = label;
+  s.appendChild(t);
+  if(count != null){
+    const c = document.createElement('span');
+    c.className = 'n'; c.textContent = count;
+    s.appendChild(c);
+  }
+  return s;
+}
+
+/* If any spacecraft carries an attribution nobody has signed off, say so.
+   Better a visible caveat than a confident claim we cannot support. */
+function renderVerification(){
+  const node = $('#unverified');
+  if(!node) return;
+  const un = SATS.filter(s => s.verified === false).length;
+  node.textContent = (un && SATS.length)
+    ? un + ' of ' + SATS.length + ' attributions pending Space Northwest sign-off'
+    : '';
+}
+
+function renderLegend(){
+  // Visibility, not brightness: in astronomy "brightness" means magnitude, which
+  // this does not compute. Parallel Answer — description structure, and honest
+  // that the dim state covers eclipsed OR daylight, so it cannot say "eclipsed".
+  const st = $('#key-state');
+  if(st){
+    st.innerHTML = '';
+    st.appendChild(litem(glyph('sat', 'var(--sodium)', true, 38, 28),
+      'Visible \u2014 sunlit against a dark sky'));
+    st.appendChild(litem(glyph('sat', null, false, 38, 28),
+      'Not visible \u2014 eclipsed or lost in daylight'));
+  }
+
+  // Type
+  const kc = $('#key-class');
+  if(kc){
+    kc.innerHTML = '';
+    const order = ['broadband','imaging','servicer','tug','datacenter','cubesat','bus','relay','rocketbody','sat'];
+    const present = [...new Set(SATS.map(s => s.cls))]
+      .sort((a,b) => order.indexOf(a) - order.indexOf(b));
+    for(const c of present){
+      kc.appendChild(litem(glyph(c, 'var(--dim)', true, 38, 28),
+        CLASS_LABEL[c] || c, SATS.filter(s => s.cls === c).length));
+    }
+  }
+
+  // Operator — the color key that was missing. Color carries meaning on the
+  // dome, so it needs somewhere to be decoded.
+  const ko = $('#key-operator');
+  if(ko){
+    ko.innerHTML = '';
+    const ops = [...new Set(SATS.map(s => s.operator))]
+      .sort((a,b) => SATS.filter(s=>s.operator===b).length - SATS.filter(s=>s.operator===a).length);
+    for(const o of ops){
+      const sw = document.createElement('span');
+      sw.className = 'swatch';
+      const c = opColor(o);
+      sw.style.background = c;
+      sw.style.boxShadow = '0 0 9px ' + c + '99';
+      ko.appendChild(litem(sw, o, SATS.filter(s => s.operator === o).length));
+    }
+  }
+}
+
+function renderFilters(){
+  const wrap = $('#filters');
+  wrap.innerHTML='';
+  const ops = OPERATOR_ORDER.filter(o => SATS.some(s=>s.operator===o));
+  const extra = [...new Set(SATS.map(s=>s.operator))].filter(o=>!OPERATOR_ORDER.includes(o));
+  [['ALL','All payloads'], ...ops.map(o=>[o,o]), ...extra.map(o=>[o,o])].forEach(([val,lbl])=>{
+    const n = val==='ALL' ? SATS.length : SATS.filter(s=>s.operator===val).length;
+    const b = document.createElement('button');
+    b.className = 'chip' + (val==='ALL' ? '' : ' hasdot');
+    if(val !== 'ALL'){
+      const d = document.createElement('i');
+      const c = opColor(val);
+      d.style.background = c;
+      d.style.boxShadow = '0 0 8px ' + c + '99';
+      b.appendChild(d);
+    }
+    const txt = document.createElement('span');
+    txt.textContent = lbl + ' (' + n + ')';
+    b.appendChild(txt);
+    b.setAttribute('aria-pressed', String(filter===val));
+    b.onclick = ()=>{ filter=val; passesShown = PASS_PREVIEW; renderFilters(); drawLive(); renderPasses(); renderCallout(); };
+    wrap.appendChild(b);
+  });
+}
+
+/* Only two states matter to whoever is holding the phone: are these real
+   satellites where they really are, or are they invented? Whether the invented
+   ones came from the feed or from this file is my problem, not theirs. */
+function setStatus(){ /* no on-screen data-state indicator by request */ }
+
+function agePhrase(iso){
+  const h = (Date.now() - new Date(iso).getTime())/3600000;
+  if(!isFinite(h)) return 'age unknown';
+  if(h < 1)  return 'refreshed under an hour ago';
+  if(h < 48) return 'refreshed ' + Math.round(h) + ' hours ago';
+  const d = Math.round(h/24);
+  return 'refreshed ' + d + ' days ago' + (d > 7 ? ' — the refresh job may have stopped' : '');
+}
+
+/* Read the committed feed. Same-origin, so no CORS, no key, no rate limit. */
+async function loadFeed(){
+  try{
+    const r = await fetch('./data/tles.json', {cache:'no-cache'});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    if(!Array.isArray(j.objects) || !j.objects.length) throw new Error('feed has no objects');
+    return {ok:true, demo: !!j.demo, generated: j.generated, records: j.objects};
+  }catch(e){
+    const why = location.protocol === 'file:'
+      ? 'Opened straight from disk, so the browser blocks reading the feed.'
+      : 'Could not read data/tles.json (' + e.message + ').';
+    return {ok:false, why:why};
+  }
+}
+
+function applyFeed(feed){
+  const records = feed.ok ? feed.records : DEMO_TLES;
+  const built = buildSats(records);
+  if(built.length){
+    SATS = built;
+  }else{
+    SATS = buildSats(DEMO_TLES);
+    feed = {ok:false, why:'The feed loaded but nothing propagated.'};
+  }
+  const isSample = !feed.ok || feed.demo;
+  if(isSample) setStatus('sample');
+  else setStatus('live', SATS.length + ' operational spacecraft, ' + agePhrase(feed.generated));
+
+  filter='ALL'; renderFilters(); renderLegend(); renderVerification(); computeOdometer(); refreshAll();
+}
+
+function refreshAll(){ drawLive(); computePasses(); }
+
+/* ============================== clocks ============================== */
+/* Rule for the whole interface: instrumentation reads 24-hour, instructions to
+   a human read 12-hour. This is a readout, so it ticks in 24 with Zulu beside
+   it — the clock a room full of space people actually works in. */
+function hms(d, tz){
+  return d.toLocaleTimeString('en-GB', {hour12:false, hour:'2-digit', minute:'2-digit',
+                                        second:'2-digit', timeZone:tz});
+}
+
+function tickClock(){
+  // Shows the time the sky is drawn for. Scrub or play and this moves with it,
+  // so nobody mistakes a simulated sky for the one outside.
+  const d = simNow();
+  const mAhead = Math.round(tOffset/60000);
+  const date = d.toLocaleDateString('en-GB', {weekday:'short', day:'2-digit', month:'short',
+                                              year:'numeric', timeZone:'America/Los_Angeles'})
+                .toUpperCase().replace(/,/g,'').replace('SEPT','SEP');  // en-GB uses 4 letters; keep the field width steady
+  const ahead = mAhead >= 1;
+  $('#wallclock').className = 'wallclock' + (ahead ? ' ahead' : '');
+  $('#wallclock').innerHTML =
+    '<span class="beat"></span>' +
+    '<span class="d">' + date + '</span>' +
+    '<span class="t">' + hms(d,'America/Los_Angeles') + ' PT</span>' +
+    '<span class="z">' + hms(d,'UTC') + ' UTC</span>' +
+    (ahead ? '<span class="fwd">+' +
+      (mAhead < 60 ? mAhead + ' min' : Math.floor(mAhead/60) + 'h ' + (mAhead%60) + 'm') +
+      ' ahead</span>' : '');
+}
+
+function startClock(){
+  // Self-correcting: each tick re-aims at the next real second boundary, so a
+  // display left running all week never walks away from the wall.
+  const tick = ()=>{ tickClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); };
+  tick();
+}
+
+/* ============================== time controls ============================== */
+function offsetPhrase(){
+  const m = Math.round(tOffset/60000);
+  if(m < 1) return 'now';
+  if(m < 60) return '<b>+' + m + ' min</b>';
+  return '<b>+' + Math.floor(m/60) + 'h ' + (m%60) + 'm</b>';
+}
+function syncScrub(){
+  $('#scrub').value = Math.round(tOffset/60000);
+  $('#tlabel').innerHTML = offsetPhrase();
+}
+function setPlaying(on){
+  playing = on;
+  const b = $('#playbtn');
+  b.innerHTML = on ? PAUSE_GLYPH : PLAY_GLYPH;
+  b.dataset.playing = on ? '1' : '0';
+  b.setAttribute('aria-label', on ? 'Pause' : 'Run time forward');
+}
+setPlaying(false);   // paint the initial glyph; markup ships empty by design
+$('#playbtn').onclick = ()=>{
+  if(!playing && tOffset >= MAX_AHEAD) tOffset = 0;
+  setPlaying(!playing);
+};
+$('#scrub').oninput = e=>{
+  setPlaying(false);
+  tOffset = Number(e.target.value)*60000;
+  syncScrub(); tickClock(); drawLive(); renderPasses(); renderCallout();
+};
+$('#tlabel').onclick = ()=>{ setPlaying(false); tOffset = 0; syncScrub(); tickClock(); drawLive(); renderPasses(); renderCallout(); };
+
+/* Jump to a pass and watch it cross, rather than reading a time off a table. */
+window.previewPass = function(startMs){
+  tOffset = Math.max(0, startMs - Date.now() - 45000);
+  syncScrub(); tickClock(); setPlaying(true); drawLive();
+  // No scrollIntoView: the callout sits inside the dome block, so the thing you
+  // just asked to watch is already on screen. Scrolling only jumps the page.
+};
+
+/* ============================== data panel ============================== */
+
+/* ============================== boot ============================== */
+async function boot(){
+  $('#dome').appendChild(drawFrame());
+  // Draw immediately from the bundled elements so nothing waits on the network,
+  // then swap in the feed the moment it arrives.
+  SATS = buildSats(DEMO_TLES);
+  renderFilters(); renderLegend(); renderVerification(); computeOdometer(); setStatus('sample'); drawLive();
+
+  startClock();
+  applyFeed(await loadFeed());
+
+  let last = performance.now(), acc = 0, odoAcc = 0;
+  function frame(ts){
+    const dt = ts - last; last = ts;
+    if(playing){
+      tOffset = Math.min(MAX_AHEAD, tOffset + dt*(RATE-1));
+      if(tOffset >= MAX_AHEAD) setPlaying(false);
+      acc += dt;
+      if(acc > 50){ acc = 0; syncScrub(); drawLive(); tickClock(); }
+    }else{
+      acc += dt;
+      if(acc > 900){ acc = 0; drawLive(); }   // idle: once a second is plenty
+    }
+    // 8 Hz: fast enough to read as motion, slow enough that digits stay legible
+    odoAcc += dt;
+    if(odoAcc > 125){ odoAcc = 0; tickOdometer(); }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  setInterval(()=>{ renderPasses(); renderCallout(); }, 30000);
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+
+})();
+</script>
+</body>
+</html>

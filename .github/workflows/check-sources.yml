@@ -1,0 +1,46 @@
+name: Check data sources
+
+# Run this from the Actions tab before anything else. GitHub's runners have open
+# egress, so this answers the question "can we actually reach the data?" without
+# needing a laptop, a proxy, or any local setup.
+#
+# It fetches nothing into the repo and changes nothing. It only reports.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly, so a source changing shape gets noticed before an event rather than during one
+    - cron: '23 8 * * 1'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Preflight — reachability and schema
+        run: node scripts/check-sources.mjs
+
+      - name: Dry run the real fetch
+        run: |
+          echo "Fetching for real, but writing nothing that gets committed."
+          node scripts/fetch-tles.mjs || true
+          echo
+          echo "--- what the fetch produced ---"
+          node -e "
+            const d=require('./data/tles.json');
+            console.log('objects   :', d.objects.length);
+            console.log('demo flag :', d.demo);
+            console.log('generated :', d.generated);
+            const withId=d.objects.filter(o=>o.norad).length;
+            const six=d.objects.filter(o=>o.norad>=100000).length;
+            console.log('with NORAD:', withId, '| 6-digit:', six);
+            const eps=new Set(d.objects.map(o=>o.line1.slice(18,32)));
+            console.log('distinct epochs:', eps.size, eps.size>1?'(real data)':'(STILL PLACEHOLDER)');
+          "
+
+      - name: Leave the repo untouched
+        run: git checkout -- data/ || true
