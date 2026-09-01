@@ -28,12 +28,12 @@
      necessary, the scale is probably wrong rather than the exception. All
      steps are fluid, so the whole page scales together instead of two
      components scaling and the rest staying fixed. ---- */
-  --fs-1: clamp(8.5px, .95vw, 9.5px);    /* micro caps: dome labels, table heads */
-  --fs-2: clamp(9.5px, 1.05vw, 10.5px);  /* small caps rows: top bar, counts */
-  --fs-3: clamp(9.5px, 1.15vw, 11.5px);  /* default UI: chips, key, callout */
-  --fs-4: clamp(11px, 1.35vw, 13px);     /* emphasised data: clock, times, table */
-  --fs-5: clamp(15px, 1.9vw, 19px);      /* section headings */
-  --fs-6: clamp(21px, 3.1vw, 32px);      /* page title */
+  --fs-1: clamp(9.5px, 1.05vw, 10.5px);    /* micro caps: dome labels, table heads */
+  --fs-2: clamp(10.5px, 1.15vw, 11.5px);  /* small caps rows: top bar, counts */
+  --fs-3: clamp(10.5px, 1.25vw, 12.5px);  /* default UI: chips, key, callout */
+  --fs-4: clamp(12px, 1.45vw, 14px);     /* emphasised data: clock, times, table */
+  --fs-5: clamp(16px, 2vw, 20px);      /* section headings */
+  --fs-6: clamp(22px, 3.2vw, 33px);      /* page title */
 
   --ls-1: .02em;   /* sentence text and title-case headings */
   --ls-2: .06em;   /* default */
@@ -189,6 +189,22 @@ svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 322px), 900px
 @keyframes breathe{0%,100%{opacity:.10}50%{opacity:.26}}
 .glow{animation:breathe 3.4s ease-in-out infinite}
 .halo{animation:breathe 2.6s ease-in-out infinite}
+/* A segmented pair, sharing one border, sitting in the transport row rather than
+   taking a row of its own. The counts do the explaining, so no caption is needed. */
+.skymode{
+  display:inline-flex;flex:0 0 auto;border:1px solid var(--rule);
+  font-size:var(--fs-1);letter-spacing:var(--ls-3);text-transform:uppercase;
+  font-variant-numeric:tabular-nums;
+}
+.skymode button{
+  background:none;border:0;color:var(--dimmer);font:inherit;letter-spacing:inherit;
+  padding:5px 10px;cursor:pointer;white-space:nowrap;transition:.15s;
+}
+.skymode button + button{border-left:1px solid var(--rule)}
+.skymode button:hover{color:var(--ice)}
+.skymode button[aria-pressed="true"]{background:var(--ice);color:var(--void)}
+.skymode button:focus-visible{outline:2px solid var(--sodium);outline-offset:-2px}
+@media (max-width:620px){ .skymode{width:100%;justify-content:center} }
 .transport{
   display:flex;align-items:center;gap:12px;padding:14px 16px;
   border-top:1px solid var(--rule-soft);margin-top:12px;
@@ -435,6 +451,10 @@ footer p b{color:var(--dim);font-weight:500}
   text-shadow:0 0 18px rgba(34,224,255,.45), 0 1px 3px rgba(4,7,12,.9);
   margin:2px 0 3px;
 }
+.odo .sh{
+  font-size:.5em;color:var(--ink);letter-spacing:var(--ls-2);
+  text-transform:uppercase;margin-top:3px;
+}
 .odo .sc{
   font-size:.5em;color:var(--dim);
   letter-spacing:var(--ls-2);text-transform:uppercase;
@@ -555,6 +575,10 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
       <button class="tbtn" id="playbtn" aria-label="Run time forward"></button>
       <input type="range" id="scrub" min="0" max="840" step="1" value="0" aria-label="Look ahead, in minutes">
       <span class="tlabel" id="tlabel">now</span>
+      <span class="skymode" role="group" aria-label="How much of the fleet to draw">
+        <button id="modesample" aria-pressed="true">Sample</button>
+        <button id="modeall" aria-pressed="false">All</button>
+      </span>
     </div>
     <div id="callout"></div>
     <p class="notice">This visualization is informational only and is not intended for navigation,
@@ -1137,6 +1161,14 @@ function bigKm(km){
    Driven by real time, not the scrubber: this is distance actually flown, so it
    must not leap forward when you preview a pass or run backwards on reset. */
 let odoFleet = null;
+/* Two ways to read the sky. 'sample' draws a readable subset with names, shapes
+   and trails. 'all' draws every matched spacecraft as a bare dot — at 10,000+
+   objects the glyphs, labels and trails cost about 87ms a frame, so they go.
+   Pass prediction always stays on the sample; predicting for the whole fleet
+   would be 15 million propagations and would lock the browser. */
+let skyMode = 'sample';
+let fullSats = null;      // lazily loaded, cached
+let fullLoading = false;
 let odoBase = 0, odoSpeed = 0, odoT0 = 0, odoCount = 0;
 
 /* The dome draws a readable sample, so summing what is on screen understates the
@@ -1166,7 +1198,11 @@ function tickOdometer(){
   box.innerHTML =
     '<span class="lab">' + nfmt(odoCount) + ' Washington-built \u00B7 distance flown</span>' +
     '<span class="km">' + nfmt(km) + ' km<sup>*</sup></span>' +
-    '<span class="sc">' + scaleOf(km) + '</span>';
+    '<span class="sc">' + scaleOf(km) + '</span>' +
+    (odoFleet && odoFleet.sharePct
+      ? '<span class="sh">' + odoFleet.sharePct.toFixed(0) +
+        '% of all working satellites</span>'
+      : '');
 }
 
 /* ============================== rendering ============================== */
@@ -1449,7 +1485,9 @@ function drawLive(){
 
   const moon = drawMoon(liveLayer, now, gmst);
 
-  const shown = SATS.filter(s => filter==='ALL' || s.operator===filter);
+  const source = (skyMode === 'all' && fullSats) ? fullSats : SATS;
+  const dense = source !== SATS;
+  const shown = source.filter(s => filter==='ALL' || s.operator===filter);
   const labelQueue = [];
 
   for(const s of shown){
@@ -1465,6 +1503,14 @@ function drawLive(){
     // Gentle bob, phase-shifted per object so the sky doesn't pulse in unison.
     const bob = Math.sin(now.getTime()/900 + (s.phase||0)) * (lit ? 1.1 : 0.5);
     const x = x0, y = y0 + bob;
+
+    if(dense){
+      // 10,000+ objects: a dot each, no trail, no glyph, no label.
+      liveLayer.appendChild(el('circle',{
+        cx:x.toFixed(1), cy:y.toFixed(1), r: lit ? 2.6 : 1.7,
+        fill: lit ? tint : '#3E6A82', opacity: lit ? .95 : .6 }));
+      continue;
+    }
 
     if(l.el >= MIN_EL){
       // Where it has been: chunky dots shrinking away behind it.
@@ -1511,7 +1557,7 @@ function drawLive(){
     drawCraft(liveLayer, x, y, head, tint, lit, l.el, s.cls, spin);
     // Every craft carries its name for the whole time it is up. Queued rather
     // than drawn here so the plates can be laid out together and land on top.
-    if(l.el >= MIN_EL) labelQueue.push({x, y, name:s.name, lit, tint, el:l.el});
+    if(!dense && l.el >= MIN_EL) labelQueue.push({x, y, name:s.name, lit, tint, el:l.el});
   }
 
   placeLabels(labelQueue, moon
@@ -1802,6 +1848,44 @@ function applyFeed(feed){
 
 function refreshAll(){ drawLive(); computePasses(); }
 
+/* ============================== sky mode ============================== */
+async function loadFullSky(){
+  if(fullSats || fullLoading) return;
+  fullLoading = true;
+  $('#modeall').textContent = 'Loading\u2026';
+  try{
+    const r = await fetch('./data/tles-full.json', {cache:'no-cache'});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    fullSats = j.objects.map((o, i) => {
+      const rec = SGP.twoline2satrec(o.l1, o.l2);
+      if(rec.error) return null;
+      return { name:'', operator:o.o, cls:o.c, built:'', line1:o.l1, line2:o.l2,
+               satrec:rec, phase:(i*1.7)%6.283 };
+    }).filter(Boolean);
+  }catch(e){
+    $('#modeall').textContent = 'Unavailable';
+    fullLoading = false;
+    return;
+  }
+  fullLoading = false;
+  setSkyMode('all');
+}
+
+function setSkyMode(mode){
+  if(mode === 'all' && !fullSats){ loadFullSky(); return; }
+  skyMode = mode;
+  const a = $('#modesample'), b = $('#modeall');
+  a.setAttribute('aria-pressed', String(mode === 'sample'));
+  b.setAttribute('aria-pressed', String(mode === 'all'));
+  a.textContent = 'Sample ' + nfmt(SATS.length);
+  b.textContent = fullSats ? 'All ' + nfmt(fullSats.length)
+                : odoFleet ? 'All ' + nfmt(odoFleet.count) : 'All';
+  renderFilters(); drawLive();
+}
+$('#modesample').onclick = ()=> setSkyMode('sample');
+$('#modeall').onclick    = ()=> setSkyMode('all');
+
 /* ============================== clocks ============================== */
 /* Rule for the whole interface: instrumentation reads 24-hour, instructions to
    a human read 12-hour. This is a readout, so it ticks in 24 with Zulu beside
@@ -1888,6 +1972,7 @@ async function boot(){
 
   startClock();
   applyFeed(await loadFeed());
+  setSkyMode('sample');
 
   let last = performance.now(), acc = 0, odoAcc = 0;
   function frame(ts){
