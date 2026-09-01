@@ -204,9 +204,13 @@ svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 322px), 900px
 .skymode button:hover{color:var(--ice)}
 .skymode button[aria-pressed="true"]{background:var(--ice);color:var(--void)}
 .skymode button:focus-visible{outline:2px solid var(--sodium);outline-offset:-2px}
-@media (max-width:620px){ .skymode{width:100%;justify-content:center} }
+@media (max-width:620px){
+  .skymode{order:3;width:100%;justify-content:stretch}
+  .skymode button{flex:1;padding:9px 8px}
+  .tlabel{min-width:0}
+}
 .transport{
-  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  display:flex;align-items:center;gap:12px 10px;flex-wrap:wrap;padding:14px 16px;
   border-top:1px solid var(--rule-soft);margin-top:12px;
 }
 .tbtn{
@@ -222,7 +226,7 @@ svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 322px), 900px
 .tbtn[data-playing="1"]{background:var(--sodium);color:var(--void)}
 .tbtn:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
 input[type=range]{
-  flex:1;-webkit-appearance:none;appearance:none;background:transparent;height:22px;cursor:pointer;
+  flex:1 1 140px;min-width:0;-webkit-appearance:none;appearance:none;background:transparent;height:22px;cursor:pointer;
 }
 input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--rule)}
 input[type=range]::-moz-range-track{height:2px;background:var(--rule)}
@@ -430,20 +434,21 @@ footer p b{color:var(--dim);font-weight:500}
      ratios hold at any width. Floor raised to 16px so captions never drop
      below 8px. */
   font-size:clamp(16px, 1.9vw, 19px);
-  width:22ch;
+  /* Sized to its content. A fixed measure plus justified text stretched two-word
+     lines like "0.60 LIGHT YEARS" across the whole box. */
+  width:max-content;max-width:min(92vw, 460px);
   line-height:1.4;
   /* No panel chrome — it read as a foreign UI element sitting on the sky. The
      shadow replaces the backing it used to have, keeping the text legible where
      it crosses stars. */
   text-shadow:0 1px 3px rgba(4,7,12,.9), 0 0 10px rgba(4,7,12,.7);
 }
-.odo > span{
-  display:block;text-align:justify;text-align-last:justify;
-}
+.odo > span{display:block}
 .odo .lab{
-  font-size:.5em;letter-spacing:var(--ls-2);
-  text-transform:uppercase;color:var(--dim);opacity:.8;
+  font-size:.5em;letter-spacing:var(--ls-2);white-space:nowrap;
+  text-transform:uppercase;color:var(--dim);opacity:.85;
 }
+.odo .lab b{color:var(--ink);font-weight:500}
 .odo .km sup{font-size:.55em;vertical-align:.5em;color:var(--dim);line-height:0}
 .odo .km{
   font-size:1em;color:var(--ice);font-weight:500;
@@ -451,12 +456,8 @@ footer p b{color:var(--dim);font-weight:500}
   text-shadow:0 0 18px rgba(34,224,255,.45), 0 1px 3px rgba(4,7,12,.9);
   margin:2px 0 3px;
 }
-.odo .sh{
-  font-size:.5em;color:var(--ink);letter-spacing:var(--ls-2);
-  text-transform:uppercase;margin-top:3px;
-}
 .odo .sc{
-  font-size:.5em;color:var(--dim);
+  font-size:.5em;white-space:nowrap;color:var(--dim);
   letter-spacing:var(--ls-2);text-transform:uppercase;
 }
 @media (max-width:900px){
@@ -1196,13 +1197,12 @@ function tickOdometer(){
   if(!odoCount || odoBase <= 0){ box.innerHTML = ''; return; }
   const km = odoBase + odoSpeed * (Date.now() - odoT0) / 1000;
   box.innerHTML =
-    '<span class="lab">' + nfmt(odoCount) + ' Washington-built \u00B7 distance flown</span>' +
+    '<span class="lab">' + nfmt(odoCount) + ' Washington-built' +
+      (odoFleet && odoFleet.sharePct
+        ? ' \u00B7 <b>' + odoFleet.sharePct.toFixed(0) + '%</b> of working satellites'
+        : '') + '</span>' +
     '<span class="km">' + nfmt(km) + ' km<sup>*</sup></span>' +
-    '<span class="sc">' + scaleOf(km) + '</span>' +
-    (odoFleet && odoFleet.sharePct
-      ? '<span class="sh">' + odoFleet.sharePct.toFixed(0) +
-        '% of all working satellites</span>'
-      : '');
+    '<span class="sc">' + scaleOf(km) + ' flown</span>';
 }
 
 /* ============================== rendering ============================== */
@@ -1864,8 +1864,11 @@ async function loadFullSky(){
                satrec:rec, phase:(i*1.7)%6.283 };
     }).filter(Boolean);
   }catch(e){
-    $('#modeall').textContent = 'Unavailable';
+    // Most likely the daily refresh has not written data/tles-full.json yet.
+    $('#modeall').textContent = 'Retry';
+    $('#modeall').title = 'The full-fleet file is not published yet. It is written by the daily refresh.';
     fullLoading = false;
+    fullSats = null;
     return;
   }
   fullLoading = false;
