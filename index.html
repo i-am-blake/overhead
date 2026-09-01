@@ -449,15 +449,19 @@ footer p b{color:var(--dim);font-weight:500}
   text-transform:uppercase;color:var(--dim);opacity:.85;
 }
 .odo .lab b{color:var(--ink);font-weight:500}
-.odo .km sup{font-size:.55em;vertical-align:.5em;color:var(--dim);line-height:0}
+.odo .sc sup{font-size:.7em;vertical-align:.4em;line-height:0}
+.odo .sh{
+  font-size:.62em;color:var(--ink);letter-spacing:var(--ls-2);
+  text-transform:uppercase;white-space:nowrap;margin:1px 0 5px;
+}
 .odo .km{
-  font-size:1em;color:var(--ice);font-weight:500;
+  font-size:1.35em;color:var(--ice);font-weight:500;line-height:1.05;
   font-variant-numeric:tabular-nums;letter-spacing:var(--ls-1);
   text-shadow:0 0 18px rgba(34,224,255,.45), 0 1px 3px rgba(4,7,12,.9);
   margin:2px 0 3px;
 }
 .odo .sc{
-  font-size:.5em;white-space:nowrap;color:var(--dim);
+  font-size:.46em;white-space:nowrap;color:var(--dimmer);
   letter-spacing:var(--ls-2);text-transform:uppercase;
 }
 @media (max-width:900px){
@@ -586,7 +590,9 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
     collision avoidance, conjunction analysis, or any operational use. Positions are approximate,
     calculated from publicly available
     <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a> orbital data
-    &mdash; not live satellite telemetry or exact real-time positions.</p>
+    &mdash; not live satellite telemetry or exact real-time positions. Counts and distances are
+    estimates: which satellites are Washington-built is determined by this project from documented
+    sources, seeded from <a href="https://planet4589.org/space/gcat" target="_blank" rel="noopener">GCAT</a>.</p>
     <div class="legend">
       <div class="lgroup">
         <h3>Visibility</h3>
@@ -673,11 +679,11 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
         was manufactured in Washington, or it was assembled here before launch. Where the company
         is headquartered does not count. Neither does who operates it, nor where it launched from:
         nothing on this map launched from Washington. Parts alone do not count either, so
-        Washington-made thrusters fly on many satellites we do not include.</p>
-        <p>Knowing this is harder than it sounds. The catalogs that track satellites record where
-        each one is and who is responsible for it. None of them record who built it. That has to be
-        gathered by hand, from company announcements, regulatory filings and trade press. The
-        attributions here are assigned by this project from documented sources, starting with
+        Washington-made thrusters fly on many satellites we do not include. Knowing this is harder
+        than it sounds. The catalogs that track satellites record where each one is and who is
+        responsible for it. None of them record who built it. That has to be gathered by hand, from
+        company announcements, regulatory filings and trade press. The attributions here are
+        assigned by this project from documented sources, starting with
         <a href="https://planet4589.org/space/gcat" target="_blank" rel="noopener">GCAT</a>, which
         records the factory rather than the parent company. Counts reflect satellites operating in
         orbit now, not everything Washington has ever built.<span id="unverified"></span></p>
@@ -1197,12 +1203,13 @@ function tickOdometer(){
   if(!odoCount || odoBase <= 0){ box.innerHTML = ''; return; }
   const km = odoBase + odoSpeed * (Date.now() - odoT0) / 1000;
   box.innerHTML =
-    '<span class="lab">' + nfmt(odoCount) + ' Washington-built' +
-      (odoFleet && odoFleet.sharePct
-        ? ' \u00B7 <b>' + odoFleet.sharePct.toFixed(0) + '%</b> of working satellites'
-        : '') + '</span>' +
-    '<span class="km">' + nfmt(km) + ' km<sup>*</sup></span>' +
-    '<span class="sc">' + scaleOf(km) + ' flown</span>';
+    '<span class="lab">Washington-built satellites in orbit</span>' +
+    '<span class="km">' + nfmt(odoCount) + '</span>' +
+    (odoFleet && odoFleet.sharePct
+      ? '<span class="sh">' + odoFleet.sharePct.toFixed(0) +
+        '% of every working satellite</span>'
+      : '') +
+    '<span class="sc">' + nfmt(km) + ' km flown<sup>*</sup> \u00B7 ' + scaleOf(km) + '</span>';
 }
 
 /* ============================== rendering ============================== */
@@ -1612,8 +1619,13 @@ function renderPasses(){
      so past 40 passes the header and the button both reported the cap instead of
      the truth — "40 in the next 14 hours · Show 35 more" no matter how many there
      really were. */
+  /* Sorted again here rather than relying on the order computePasses left them
+     in. Passes are found satellite by satellite, so the raw order is grouped by
+     spacecraft; any later change to filtering or merging could reintroduce that.
+     Sorting on render makes chronological order true in every case. */
   const all = passes.filter(p => p.peak > now)
-                    .filter(p => filter==='ALL' || p.sat.operator===filter);
+                    .filter(p => filter==='ALL' || p.sat.operator===filter)
+                    .sort((a, b) => a.peak - b.peak);
   $('#passcount').textContent = all.length + ' in the next ' + HORIZON_H + ' hours · ' +
     all.filter(r=>r.visible).length + ' visible';
 
