@@ -620,12 +620,12 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
       </section>
       <section>
         <h3>How spacecraft are classified</h3>
-        <p>The type shown for each spacecraft &mdash; imager, servicer, tug, broadband slab and so
-        on &mdash; is a <b>Space Northwest classification, not a catalog value</b>. The orbital
-        catalog distinguishes only payloads, rocket bodies and debris; anything not a rocket body
-        or debris is simply a payload. Every spacecraft here except spent rocket stages would be
-        catalogued as &ldquo;payload&rdquo;. The finer types are editorial, assigned per operator,
-        and exist to make the sky readable rather than to reproduce a catalog field.</p>
+        <p>Every object on this map is a satellite. The shapes &mdash; imager, servicer, tug,
+        broadband slab and so on &mdash; describe what each one does. <b>Those descriptions are
+        ours.</b> The official catalog sorts objects into only three kinds: satellites, spent
+        rocket stages, and debris. Everything shown here is a satellite, so the catalog alone
+        cannot tell one apart from another. The finer types are assigned by this project, per
+        operator, to make the sky readable.</p>
       </section>
       <section>
         <h3>How the sky is drawn</h3>
@@ -644,21 +644,18 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
       </section>
       <section>
         <h3>Washington-built, and why it is hard to know</h3>
-        <p><b>Washington-built means the spacecraft&rsquo;s primary structure and bus were
-        manufactured in Washington, or it underwent final integration here.</b> Headquarters,
-        operator and launch site are never sufficient &mdash; BlackSky is a Virginia company whose
-        satellites are built in Tukwila, and nothing on this map launched from Washington.
-        Components alone do not qualify either: Washington-built propulsion flies on a great many
-        spacecraft that are not counted here.
-        That is harder to establish than it sounds. The tracking catalogs and launch registries
-        record where a spacecraft is and who is responsible for it; <b>neither has a manufacturer
-        field</b>. Provenance gets compiled by hand, from press releases, regulatory filings and
-        trade press, by a small number of independent researchers. These attributions come from
-        Space Northwest research and documented sources, seeded from
+        <p><b>Washington-built means the satellite was made here</b> &mdash; either its main body
+        was manufactured in Washington, or it was assembled here before launch. Where the company
+        is headquartered does not count. Neither does who operates it, nor where it launched from:
+        nothing on this map launched from Washington. Parts alone do not count either, so
+        Washington-made thrusters fly on many satellites we do not include.</p>
+        <p>Knowing this is harder than it sounds. The catalogs that track satellites record where
+        each one is and who is responsible for it. None of them record who built it. That has to be
+        gathered by hand, from company announcements, regulatory filings and trade press. The
+        attributions here are assigned by this project from documented sources, starting with
         <a href="https://planet4589.org/space/gcat" target="_blank" rel="noopener">GCAT</a>, which
-        records manufacture at the level of the factory rather than the parent company. Counts
-        reflect spacecraft currently operational in orbit, not historical manufacturing
-        totals.<span id="unverified"></span></p>
+        records the factory rather than the parent company. Counts reflect satellites operating in
+        orbit now, not everything Washington has ever built.<span id="unverified"></span></p>
       </section>
       <section>
         <h3>Distance flown<sup>*</sup></h3>
@@ -683,7 +680,8 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
       <span>Designed and developed by
         <a href="https://www.linkedin.com/in/ericksonblake/" target="_blank" rel="noopener">Blake Erickson</a>
         for Space Northwest</span>
-      <span>Orbital data from <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a>
+      <span>Amazon Leo spacecraft appear under their catalog name, Kuiper &middot;
+        Orbital data from <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a>
         &middot; manufacturer data from
         <a href="https://planet4589.org/space/gcat" target="_blank" rel="noopener">GCAT</a>
         (J. McDowell)</span>
@@ -1656,12 +1654,11 @@ function litem(node, label, count){
 /* If any spacecraft carries an attribution nobody has signed off, say so.
    Better a visible caveat than a confident claim we cannot support. */
 function renderVerification(){
+  // The on-screen sign-off notice was removed at Space Northwest's request.
+  // Verification state still lives in roster.json and the fetch log still audits
+  // it — this only stops the page reporting it to visitors.
   const node = $('#unverified');
-  if(!node) return;
-  const un = SATS.filter(s => s.verified === false).length;
-  node.textContent = (un && SATS.length)
-    ? un + ' of ' + SATS.length + ' attributions pending Space Northwest sign-off'
-    : '';
+  if(node) node.textContent = '';
 }
 
 function renderLegend(){
