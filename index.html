@@ -191,6 +191,10 @@ svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 322px), 900px
 .halo{animation:breathe 2.6s ease-in-out infinite}
 /* A segmented pair, sharing one border, sitting in the transport row rather than
    taking a row of its own. The counts do the explaining, so no caption is needed. */
+.drawn{
+  font-size:var(--fs-1);letter-spacing:var(--ls-2);color:var(--dimmer);
+  white-space:nowrap;font-variant-numeric:tabular-nums;
+}
 .skymode{
   display:inline-flex;flex:0 0 auto;border:1px solid var(--rule);
   font-size:var(--fs-1);letter-spacing:var(--ls-3);text-transform:uppercase;
@@ -580,6 +584,7 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
       <button class="tbtn" id="playbtn" aria-label="Run time forward"></button>
       <input type="range" id="scrub" min="0" max="840" step="1" value="0" aria-label="Look ahead, in minutes">
       <span class="tlabel" id="tlabel">now</span>
+      <span class="drawn" id="drawn"></span>
       <span class="skymode" role="group" aria-label="How much of the fleet to draw">
         <button id="modesample" aria-pressed="true">Sample</button>
         <button id="modeall" aria-pressed="false">All</button>
@@ -1567,6 +1572,9 @@ function drawLive(){
     if(!dense && l.el >= MIN_EL) labelQueue.push({x, y, name:s.name, lit, tint, el:l.el});
   }
 
+  const d = $('#drawn');
+  if(d) d.textContent = nfmt(up) + ' of ' + nfmt(shown.length) + ' above the horizon';
+
   placeLabels(labelQueue, moon
     ? {x:moon.x-moon.r-4, y:moon.y-moon.r-4, w:moon.r*2+8, h:moon.r*2+24}
     : null);
@@ -1875,6 +1883,11 @@ async function loadFullSky(){
       return { name:'', operator:o.o, cls:o.c, built:'', line1:o.l1, line2:o.l2,
                satrec:rec, phase:(i*1.7)%6.283 };
     }).filter(Boolean);
+    if(!fullSats.length){
+      $('#modeall').textContent = 'No data';
+      $('#modeall').title = 'The full-fleet file loaded but no element sets could be read from it.';
+      fullSats = null; fullLoading = false; return;
+    }
   }catch(e){
     // Most likely the daily refresh has not written data/tles-full.json yet.
     $('#modeall').textContent = 'Retry';
