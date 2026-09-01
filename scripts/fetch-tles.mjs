@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'data', 'tles.json');
+const OUT_FULL = path.join(ROOT, 'data', 'tles-full.json');
 const ENDPOINT = 'https://celestrak.org/NORAD/elements/gp.php';
 const SATCAT   = 'https://celestrak.org/satcat/records.php';
 
@@ -292,6 +293,7 @@ console.log(`${sixDigit} with 6-digit catalog numbers` +
    "distance flown" figure, which is derived rather than claimed. */
 const launched = new Map();
 const objType = new Map();
+let catalogStats = null;
 try {
   const u = new URL(SATCAT);
   u.searchParams.set('GROUP', 'active');
@@ -309,7 +311,21 @@ try {
     if (c[iLd]) launched.set(id, c[iLd].trim());
     if (iOt >= 0 && c[iOt]) objType.set(id, c[iOt].trim());
   }
-  console.log(`${launched.size} launch dates from SATCAT\n`);
+  console.log(`${launched.size} launch dates from SATCAT`);
+
+  /* Denominator for the Washington share. It must be PAYLOADS, not every tracked
+     object: the active catalog also carries spent rocket stages and debris, and
+     counting those would understate Washington's share against a population that
+     was never manufactured by anyone. */
+  let payloads = 0, typed = 0;
+  for (const o of catalog) {
+    const t = objType.get(o.norad);
+    if (!t) continue;
+    typed++;
+    if (/^PAY/i.test(t)) payloads++;
+  }
+  catalogStats = { total: catalog.length, typed, payloads };
+  console.log(`${payloads} of ${typed} typed objects are payloads (the share denominator)\n`);
 } catch (err) {
   console.warn(`SATCAT fetch failed (${err.message}) — continuing without launch dates.`);
   console.warn('Distance-flown figures will be omitted rather than estimated.\n');
@@ -341,7 +357,8 @@ for (const src of roster.sources) {
   hits = hits.filter(o => validTle(o.line1, o.line2) && !seen.has(o.norad));
   const stale = hits.filter(o => epochAgeDays(o.line1) > 14).length;
   fleetAll.push(...hits.map(o => ({
-    line2: o.line2, launched: launched.get(o.norad) || null, operator: src.operator })));
+    line1: o.line1, line2: o.line2, launched: launched.get(o.norad) || null,
+    operator: src.operator, cls: src.class ?? 'sat' })));
   hits = sample(hits, src.limit ?? 25);
   hits.forEach(o => seen.add(o.norad));
 
@@ -409,6 +426,12 @@ if (previous && !previous.demo && collected.length < previous.objects.length * 0
 
 await fs.mkdir(path.dirname(OUT), { recursive: true });
 const fleet = fleetTotals(fleetAll);
+if (catalogStats) {
+  fleet.catalogPayloads = catalogStats.payloads;
+  fleet.catalogTotal = catalogStats.total;
+  fleet.sharePct = catalogStats.payloads
+    ? (fleet.count / catalogStats.payloads) * 100 : null;
+}
 const byOp = {};
 fleetAll.forEach(o => { byOp[o.operator] = (byOp[o.operator] || 0) + 1; });
 fleet.byOperator = byOp;
@@ -417,6 +440,10 @@ console.log(`\nFLEET TOTALS — computed over all ${fleet.count} matched objects
 console.log(`  combined speed  ${Math.round(fleet.combinedSpeedKmS).toLocaleString()} km/s`);
 console.log(`  distance flown  ${(fleet.distanceKm / 1e12).toFixed(2)} trillion km`);
 console.log(`  with a launch date: ${fleet.dated} of ${fleet.count}`);
+if (fleet.sharePct != null) {
+  console.log(`  WASHINGTON SHARE  ${fleet.sharePct.toFixed(1)}% of ${fleet.catalogPayloads} active payloads`);
+  console.log('  (denominator excludes rocket bodies and debris)');
+}
 
 await fs.writeFile(OUT, JSON.stringify({
   generated: new Date().toISOString(),
@@ -425,3 +452,14 @@ await fs.writeFile(OUT, JSON.stringify({
 }, null, 1) + '\n');
 
 console.log(`Wrote ${path.relative(ROOT, OUT)}`);
+
+/* Every matched object, minimal fields, for the full-sky view. Loaded on demand
+   rather than on every visit — it is an order of magnitude larger than the
+   sampled feed. */
+await fs.writeFile(OUT_FULL, JSON.stringify({
+  generated: fleet.asOf,
+  note: 'Every matched object, unsampled. Loaded only when the full-sky view is selected.',
+  count: fleetAll.length,
+  objects: fleetAll.map(o => ({ o: o.operator, c: o.cls, l1: o.line1, l2: o.line2 }))
+}) + '\n');
+console.log(`Wrote ${path.relative(ROOT, OUT_FULL)} — ${fleetAll.length} objects`);
