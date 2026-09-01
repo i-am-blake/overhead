@@ -957,6 +957,7 @@ function computePasses(){
     else{
       passes = found.sort((a,b)=>a.peak-b.peak);
       $('#prog').style.width = '0%';
+      renderFilters();          // counts are pass counts, so they need the result
       renderPasses(); renderCallout();
     }
   }
@@ -1710,8 +1711,18 @@ function renderFilters(){
   wrap.innerHTML='';
   const ops = OPERATOR_ORDER.filter(o => SATS.some(s=>s.operator===o));
   const extra = [...new Set(SATS.map(s=>s.operator))].filter(o=>!OPERATOR_ORDER.includes(o));
+
+  /* These chips live inside "Next passes" and sit directly under a header that
+     counts passes, so they count passes too. Counting spacecraft here put two
+     different numbers for the same filter side by side — 3 on the chip, 7 in the
+     header. Spacecraft counts are in the dome's operator key instead. */
+  const now = simNow().getTime();
+  const upcoming = passes.filter(p => p.peak > now);
+  const ready = passes.length > 0;
+
   [['ALL','All payloads'], ...ops.map(o=>[o,o]), ...extra.map(o=>[o,o])].forEach(([val,lbl])=>{
-    const n = val==='ALL' ? SATS.length : SATS.filter(s=>s.operator===val).length;
+    const n = val==='ALL' ? upcoming.length
+                          : upcoming.filter(p => p.sat.operator===val).length;
     const b = document.createElement('button');
     b.className = 'chip' + (val==='ALL' ? '' : ' hasdot');
     if(val !== 'ALL'){
@@ -1722,7 +1733,7 @@ function renderFilters(){
       b.appendChild(d);
     }
     const txt = document.createElement('span');
-    txt.textContent = lbl + ' (' + n + ')';
+    txt.textContent = lbl + (ready ? ' (' + n + ')' : '');
     b.appendChild(txt);
     b.setAttribute('aria-pressed', String(filter===val));
     b.onclick = ()=>{ filter=val; passesShown = PASS_PREVIEW; renderFilters(); drawLive(); renderPasses(); renderCallout(); };
@@ -1883,7 +1894,7 @@ async function boot(){
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  setInterval(()=>{ renderPasses(); renderCallout(); }, 30000);
+  setInterval(()=>{ renderFilters(); renderPasses(); renderCallout(); }, 30000);
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
