@@ -414,7 +414,7 @@ footer p b{color:var(--dim);font-weight:500}
      ratios hold at any width. Floor raised to 16px so captions never drop
      below 8px. */
   font-size:clamp(16px, 1.9vw, 19px);
-  width:19.5ch;
+  width:22ch;
   line-height:1.4;
   /* No panel chrome — it read as a foreign UI element sitting on the sky. The
      shadow replaces the backing it used to have, keeping the text legible where
@@ -1118,12 +1118,13 @@ function kmFlown(sat){
 
 /* A number this size means nothing on its own. Pick whichever comparison lands
    at a countable figure — laps, then Moon trips, then trips to the Sun. */
-const EARTH_LAP = 40075, MOON_RT = 768800, SUN_RT = 299195741.4;
+const EARTH_LAP = 40075, MOON_RT = 768800, SUN_RT = 299195741.4, LIGHT_YEAR = 9.4607e12;
 function nfmt(x){ return Math.round(x).toLocaleString('en-US'); }
 function scaleOf(km){
   if(km < 4e6) return nfmt(km/EARTH_LAP) + ' laps around the Earth';
-  if(km < 4e9) return nfmt(km/MOON_RT)   + ' round trips to the Moon';
-  return nfmt(km/SUN_RT) + ' round trips to the Sun';
+  if(km < 4e9)  return nfmt(km/MOON_RT) + ' round trips to the Moon';
+  if(km < 2e12) return nfmt(km/SUN_RT)  + ' round trips to the Sun';
+  return (km/LIGHT_YEAR).toFixed(2) + ' light years';
 }
 function bigKm(km){
   if(km >= 1e9) return (km/1e9).toFixed(km >= 1e10 ? 0 : 1) + ' billion km';
@@ -1135,14 +1136,25 @@ function bigKm(km){
    fleet's combined orbital speed — a few hundred km every second for this roster.
    Driven by real time, not the scrubber: this is distance actually flown, so it
    must not leap forward when you preview a pass or run backwards on reset. */
+let odoFleet = null;
 let odoBase = 0, odoSpeed = 0, odoT0 = 0, odoCount = 0;
 
-function computeOdometer(){
-  const dated = SATS.filter(s => s.launched);
-  odoCount = dated.length;
-  odoSpeed = dated.reduce((sum, s) => sum + (orbitalSpeed(s.line2) || 0), 0);
-  odoBase  = dated.reduce((sum, s) => sum + kmFlown(s), 0);
-  odoT0    = Date.now();
+/* The dome draws a readable sample, so summing what is on screen understates the
+   real total roughly fiftyfold. The feed carries totals computed over every
+   matched spacecraft before sampling; prefer those. */
+function computeOdometer(fleet){
+  if(fleet && fleet.count && fleet.distanceKm > 0){
+    odoCount = fleet.count;
+    odoSpeed = fleet.combinedSpeedKmS;
+    odoBase  = fleet.distanceKm;
+    odoT0    = Date.parse(fleet.asOf) || Date.now();
+  }else{
+    const dated = SATS.filter(s => s.launched);
+    odoCount = dated.length;
+    odoSpeed = dated.reduce((sum, s) => sum + (orbitalSpeed(s.line2) || 0), 0);
+    odoBase  = dated.reduce((sum, s) => sum + kmFlown(s), 0);
+    odoT0    = Date.now();
+  }
   tickOdometer();
 }
 
@@ -1152,7 +1164,7 @@ function tickOdometer(){
   if(!odoCount || odoBase <= 0){ box.innerHTML = ''; return; }
   const km = odoBase + odoSpeed * (Date.now() - odoT0) / 1000;
   box.innerHTML =
-    '<span class="lab">Washington-built \u00B7 distance flown</span>' +
+    '<span class="lab">' + nfmt(odoCount) + ' Washington-built \u00B7 distance flown</span>' +
     '<span class="km">' + nfmt(km) + ' km<sup>*</sup></span>' +
     '<span class="sc">' + scaleOf(km) + '</span>';
 }
@@ -1762,7 +1774,7 @@ async function loadFeed(){
     if(!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
     if(!Array.isArray(j.objects) || !j.objects.length) throw new Error('feed has no objects');
-    return {ok:true, demo: !!j.demo, generated: j.generated, records: j.objects};
+    return {ok:true, demo: !!j.demo, generated: j.generated, fleet: j.fleet || null, records: j.objects};
   }catch(e){
     const why = location.protocol === 'file:'
       ? 'Opened straight from disk, so the browser blocks reading the feed.'
@@ -1780,11 +1792,12 @@ function applyFeed(feed){
     SATS = buildSats(DEMO_TLES);
     feed = {ok:false, why:'The feed loaded but nothing propagated.'};
   }
+  odoFleet = feed.ok ? feed.fleet : null;
   const isSample = !feed.ok || feed.demo;
   if(isSample) setStatus('sample');
   else setStatus('live', SATS.length + ' operational spacecraft, ' + agePhrase(feed.generated));
 
-  filter='ALL'; renderFilters(); renderLegend(); renderVerification(); computeOdometer(); refreshAll();
+  filter='ALL'; renderFilters(); renderLegend(); renderVerification(); computeOdometer(odoFleet); refreshAll();
 }
 
 function refreshAll(){ drawLive(); computePasses(); }
@@ -1871,7 +1884,7 @@ async function boot(){
   // Draw immediately from the bundled elements so nothing waits on the network,
   // then swap in the feed the moment it arrives.
   SATS = buildSats(DEMO_TLES);
-  renderFilters(); renderLegend(); renderVerification(); computeOdometer(); setStatus('sample'); drawLive();
+  renderFilters(); renderLegend(); renderVerification(); computeOdometer(odoFleet); setStatus('sample'); drawLive();
 
   startClock();
   applyFeed(await loadFeed());
