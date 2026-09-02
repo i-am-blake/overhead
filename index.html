@@ -868,6 +868,7 @@ const RATE = 60;              // 1 second of watching = 1 minute of sky
 const MAX_AHEAD = 840*60000;  // 14 h, matching the pass search window
 function simNow(){ return new Date(Date.now() + tOffset); }
 let passes = [];
+let passesComputedAt = 0;   // when the window was predicted from
 const PASS_PREVIEW = 5;      // rows visible at rest, and the size of each reveal
 const PASS_RENDER_CAP = 40;  // hard render limit — a drawing cap, NOT a count
 let passesShown = PASS_PREVIEW;
@@ -988,6 +989,7 @@ function computePasses(){
     if(i < SATS.length){ requestAnimationFrame(chunk); }
     else{
       passes = found.sort((a,b)=>a.peak-b.peak);
+      passesComputedAt = start.getTime();
       $('#prog').style.width = '0%';
       renderFilters();          // counts are pass counts, so they need the result
       renderPasses(); renderCallout();
@@ -1169,6 +1171,7 @@ function bigKm(km){
    Driven by real time, not the scrubber: this is distance actually flown, so it
    must not leap forward when you preview a pass or run backwards on reset. */
 let odoFleet = null;
+let feedGenerated = null;   // when the elements were fetched, from the feed itself
 /* Two ways to read the sky. 'sample' draws a readable subset with names, shapes
    and trails. 'all' draws every matched spacecraft as a bare dot — at 10,000+
    objects the glyphs, labels and trails cost about 87ms a frame, so they go.
@@ -1632,8 +1635,8 @@ function renderPasses(){
   const all = passes.filter(p => p.peak > now)
                     .filter(p => filter==='ALL' || p.sat.operator===filter)
                     .sort((a, b) => a.peak - b.peak);
-  $('#passcount').textContent = all.length + ' in the next ' + HORIZON_H + ' hours · ' +
-    all.filter(r=>r.visible).length + ' visible';
+  const age = elementAgePhrase();
+  $('#passcount').textContent = all.length + ' ' + windowEndPhrase() + (age ? ' · ' + age : '');
 
   const renderable = Math.min(all.length, PASS_RENDER_CAP);
   passesShown = Math.min(Math.max(passesShown, PASS_PREVIEW), Math.max(renderable, PASS_PREVIEW));
@@ -1857,6 +1860,7 @@ function applyFeed(feed){
     feed = {ok:false, why:'The feed loaded but nothing propagated.'};
   }
   odoFleet = feed.ok ? feed.fleet : null;
+  feedGenerated = feed.ok ? Date.parse(feed.generated) : null;
   const isSample = !feed.ok || feed.demo;
   if(isSample) setStatus('sample');
   else setStatus('live', SATS.length + ' operational spacecraft, ' + agePhrase(feed.generated));
@@ -1911,6 +1915,29 @@ function setSkyMode(mode){
 }
 $('#modesample').onclick = ()=> setSkyMode('sample');
 $('#modeall').onclick    = ()=> setSkyMode('all');
+
+/* Both halves are derived — one from the look-ahead window, one from the feed's
+   own timestamp — so neither can drift out of step with the workflow schedule.
+   Age is deliberately chosen over a countdown: if the daily job stops, this
+   starts reading "elements 3d old" and says so, where a countdown would keep
+   counting down to a refresh that never arrives. */
+/* Anchored to when the passes were computed, not to now. Recalculating from the
+   clock advertised a window several hours beyond anything actually predicted. */
+function windowEndPhrase(){
+  if(!passesComputedAt) return 'in the next ' + HORIZON_H + ' hours';
+  const end = new Date(passesComputedAt + HORIZON_H * 3600000);
+  return 'through ' + fmtTime(end) + fmtDayIfNeeded(end);
+}
+
+function elementAgePhrase(){
+  if(!feedGenerated) return '';
+  const h = (Date.now() - feedGenerated) / 3600000;
+  if(!isFinite(h) || h < 0) return '';
+  if(h < 1.5)  return 'elements under an hour old';
+  if(h < 48)   return 'elements ' + Math.round(h) + 'h old';
+  const d = Math.round(h / 24);
+  return 'elements ' + d + 'd old' + (d > 2 ? ' — the daily refresh may have stopped' : '');
+}
 
 /* ============================== clocks ============================== */
 /* Rule for the whole interface: instrumentation reads 24-hour, instructions to
@@ -2018,7 +2045,14 @@ async function boot(){
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  setInterval(()=>{ renderFilters(); renderPasses(); renderCallout(); }, 30000);
+  setInterval(()=>{
+    /* Passes only ever fall out of the window as they happen. Left alone, a
+       screen running all day would drain to an empty table. Recompute once the
+       remaining look-ahead drops to two hours. */
+    const elapsedH = passesComputedAt ? (Date.now() - passesComputedAt) / 3600000 : 0;
+    if(passesComputedAt && elapsedH > HORIZON_H - 2){ computePasses(); return; }
+    renderFilters(); renderPasses(); renderCallout();
+  }, 30000);
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
