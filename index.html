@@ -1933,10 +1933,10 @@ function elementAgePhrase(){
   if(!feedGenerated) return '';
   const h = (Date.now() - feedGenerated) / 3600000;
   if(!isFinite(h) || h < 0) return '';
-  if(h < 1.5)  return 'elements under an hour old';
-  if(h < 48)   return 'elements ' + Math.round(h) + 'h old';
+  if(h < 1.5)  return 'updated under an hour ago';
+  if(h < 48)   return 'updated ' + Math.round(h) + 'h ago';
   const d = Math.round(h / 24);
-  return 'elements ' + d + 'd old' + (d > 2 ? ' — the daily refresh may have stopped' : '');
+  return 'updated ' + d + 'd ago' + (d > 2 ? ' — the daily refresh may have stopped' : '');
 }
 
 /* ============================== clocks ============================== */
