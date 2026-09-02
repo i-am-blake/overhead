@@ -464,10 +464,16 @@ footer p b{color:var(--dim);font-weight:500}
   font-size:.62em;text-shadow:none;vertical-align:.12em;
 }
 .odo .row i{
-  font-style:normal;font-size:.5em;color:var(--ink);
+  font-style:normal;font-size:.72em;color:var(--ice);
   letter-spacing:var(--ls-2);text-transform:uppercase;
 }
 .odo .row sup{font-size:.6em;vertical-align:.45em;line-height:0}
+/* Tablet and below: centre the block and both rows. Left alignment needs a long
+   line to sit against, and at these widths there is no longer one. */
+@media (max-width:1024px){
+  .odo{display:flex;flex-direction:column;align-items:center;text-align:center}
+  .odo .row{justify-content:center}
+}
 
 
 
@@ -1214,8 +1220,8 @@ function tickOdometer(){
           ? ' (' + odoFleet.sharePct.toFixed(0) + '% of total)' : '') +
       '</i></span>' +
     '<span class="row">' +
-      '<b>' + nfmt(km) + '</b>' +
-      '<i>km flown<sup>*</sup> (' + (km/LIGHT_YEAR).toFixed(2) + ' light years)</i></span>';
+      '<b>' + nfmt(km) + '<sup>*</sup></b>' +
+      '<i>km flown (' + (km/LIGHT_YEAR).toFixed(2) + ' light years)</i></span>';
 }
 
 /* ============================== rendering ============================== */
