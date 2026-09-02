@@ -173,7 +173,7 @@ h1{
 /* Reserve a fixed budget for the chrome above and below rather than a bare vh
    fraction — the reserve is roughly constant, the viewport is not, so this grows
    the dome far more on a big monitor without pushing the controls off a laptop. */
-svg.dome{display:block;width:100%;height:clamp(250px, calc(100vh - 396px), 900px);margin-top:14px}
+svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 340px), 900px);margin-top:16px}
 .ring{fill:none;stroke:var(--rule);stroke-width:1.5;stroke-dasharray:3 5}
 .ring.horizon{stroke:var(--ice);stroke-width:2;stroke-dasharray:none;filter:url(#neon);opacity:.85}
 .spoke{stroke:var(--rule-soft);stroke-width:1;opacity:.8}
@@ -430,7 +430,7 @@ footer p b{color:var(--dim);font-weight:500}
 /* In flow above the dome rather than overlaid on it. As a compact three-line
    corner readout the overlay worked; as two wide rows it collided with the sky. */
 .odo{
-  padding:16px 17px 0;
+  padding:12px 17px 0;
   /* ch is relative to this element's own size, so the box is measured in
      characters of the number it exists to show. Every row then justifies to
      that one measure, giving flush left and right edges on all three. */
@@ -439,7 +439,7 @@ footer p b{color:var(--dim);font-weight:500}
      the label overflowed. Sizing every row in em of one local root means the
      ratios hold at any width. Floor raised to 16px so captions never drop
      below 8px. */
-  font-size:clamp(16px, 1.9vw, 19px);
+  font-size:clamp(13px, 1.45vw, 15px);
   width:auto;max-width:100%;
   line-height:1.4;
   /* No panel chrome — it read as a foreign UI element sitting on the sky. The
@@ -450,7 +450,7 @@ footer p b{color:var(--dim);font-weight:500}
 .odo > span{display:block}
 /* Value in Tron cyan, description in white, separated by a dash. */
 .odo .row{
-  display:flex;align-items:baseline;gap:.42em;flex-wrap:wrap;margin-bottom:4px;
+  display:flex;align-items:baseline;gap:.42em;flex-wrap:wrap;margin-bottom:2px;
 }
 .odo .row b{white-space:nowrap}
 .odo .row i{min-width:0}
