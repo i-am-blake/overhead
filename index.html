@@ -213,8 +213,13 @@ svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 340px), 900px
   .skymode button{flex:1;padding:9px 8px}
   .tlabel{min-width:0}
 }
+/* The transport and the callout sit directly on top of each other, so they share
+   a height. 46px is set by the callout's content — a 24px button in 11px padding
+   — and the transport matches it by tightening its padding around the 30px play
+   button rather than by growing the callout. */
 .transport{
-  display:flex;align-items:center;gap:12px 10px;flex-wrap:wrap;padding:14px 16px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  min-height:46px;box-sizing:border-box;padding:8px 16px;
   border-top:1px solid var(--rule-soft);margin-top:12px;
 }
 .tbtn{
@@ -286,7 +291,7 @@ input[type=range]:focus-visible{outline:2px solid var(--sodium);outline-offset:4
 /* ---------- callout ---------- */
 .callout{
   display:flex;align-items:center;gap:0;flex-wrap:wrap;
-  min-height:44px;box-sizing:border-box;
+  min-height:46px;box-sizing:border-box;
   padding:11px 16px;border-top:1px solid var(--rule-soft);
   /* Same typographic system as the clock row above: 11.5px mono, uppercase,
      wide tracking, tabular figures, one accented cell. */
