@@ -486,22 +486,26 @@ footer p b{color:var(--dim);font-weight:500}
    and the heading is exactly 2em of it, so the label-to-heading ratio holds at
    every viewport instead of drifting between two independent clamps. */
 footer{
-  /* ping on the left, titles beside it — the label sits level with the flasher */
-  margin-top:56px;display:flex;gap:24px;align-items:flex-start;text-align:left;
+  margin-top:56px;display:block;text-align:left;
   border:1px solid var(--rule);
   padding:30px 26px 28px;
   background:linear-gradient(120deg,#14212E 0%,var(--deeper) 70%);
   max-width:none;
   font-size:var(--fs-2);
 }
+/* One row, vertically centred. The dot is the centre of the 52px ping box, so
+   align-items:center puts the title's midline exactly on the dot at every width
+   and every font size — where the old line-height:52px only held while both
+   stayed put. */
+.fhead{display:flex;align-items:center;gap:24px;margin-bottom:22px}
 footer .ping{margin:0;flex:0 0 52px}
 
 footer h2{
   font-family:var(--mono);font-weight:400;
-  font-size:1em;line-height:52px;
+  font-size:1em;line-height:1.3;
   letter-spacing:var(--ls-4);text-transform:uppercase;
   color:var(--sodium);text-shadow:0 0 12px rgba(255,138,30,.35);
-  margin:0 0 18px;white-space:nowrap;
+  margin:0;min-width:0;
 }
 footer .fbody{flex:1;min-width:0;max-width:none;margin:0}
 /* Below this the single line no longer fits beside the flasher, so the ping goes
@@ -511,9 +515,10 @@ footer .fbody{flex:1;min-width:0;max-width:none;margin:0}
      desktop reference point: the ring's outer edge sits on the content edge, the
      same as it does in the row layout. Aligning the dot instead left the ring
      visually outdented from the text. */
-  footer{flex-direction:column;gap:10px;padding:22px 26px}
-  footer .ping{margin-left:0}
-  footer h2{white-space:normal;line-height:1.4;margin-bottom:16px}
+  /* Still one row — the title wraps beside the ping rather than dropping below
+     it, so the dot stays on the title's midline in every view. */
+  footer{padding:22px 20px}
+  .fhead{gap:16px;margin-bottom:18px}
 }
 /* Centred column at a readable measure. The three-column grid gave 39 characters
    per line — well under the 45-75 comfort band — because six sections in 900px
@@ -647,9 +652,11 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
   </section>
 
   <footer>
-    <div class="ping" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
-    <div class="fbody">
+    <div class="fhead">
+      <div class="ping" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
       <h2>About this visualization</h2>
+    </div>
+    <div class="fbody">
     <div class="notes">
       <section>
         <h3>Where the data comes from</h3>
