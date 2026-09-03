@@ -100,13 +100,13 @@
     {
       "id": "sherpa",
       "match": "SHERPA",
-      "operator": "Spaceflight Industries",
+      "operator": "Spaceflight Inc.",
       "built": "Seattle, WA",
       "kind": "Orbital transfer vehicle",
       "limit": 10,
-      "verify": "Sherpa tugs are Seattle-built. Several are long dead and drifting \u2014 decide whether a defunct tug still counts. Operator name corrected to 'Spaceflight Industries' per Space Northwest, 2026-08-31.",
+      "verify": "Sherpa tugs are Seattle-built. Several are long dead and drifting \u2014 decide whether a defunct tug still counts as something to point at.",
       "class": "tug",
-      "basis": "Spaceflight Industries, Seattle/Tukwila WA, built the Sherpa OTV line. Note: GCAT carries several related org codes (SFLIN Spaceflight Industries, SFLINC Spaceflight Inc.). Space Northwest confirms Industries is the entity that built the spacecraft.",
+      "basis": "Spaceflight Inc., Seattle WA, builds the Sherpa OTV line.",
       "source_url": "",
       "verified_by": "",
       "verified_on": ""
