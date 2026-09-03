@@ -1249,6 +1249,7 @@ let skyMode = 'sample';
 const EXPLORE_MIN = 10, EXPLORE_MAX = 20;
 let exploreSet = null;      // chosen from the whole fleet, refreshed periodically
 let exploreBusy = false;
+let overheadTotal = 0;   // everything above the horizon fleet-wide, for the readout
 let fullSats = null;      // lazily loaded, cached
 let fullLoading = false;
 let odoBase = 0, odoSpeed = 0, odoT0 = 0, odoCount = 0;
@@ -1583,7 +1584,10 @@ function drawLive(){
   const source = (skyMode === 'all' && fullSats) ? fullSats
                : (exploreSet && exploreSet.length) ? exploreSet
                : SATS;
-  const dense = source !== SATS;
+  /* Keyed off the mode, not off which array is in use. Explore now draws from a
+     selected set rather than SATS, and testing identity here silently turned off
+     names, glyphs and trails the moment that landed. */
+  const dense = (skyMode === 'all');
   const shown = source.filter(s => filter==='ALL' || s.operator===filter);
   const labelQueue = [];
 
@@ -1663,7 +1667,9 @@ function drawLive(){
      nothing and invites them to wonder what happened to the rest. */
   if(d) d.textContent = dense
     ? nfmt(up) + ' of ' + nfmt(shown.length) + ' above the horizon'
-    : nfmt(up) + ' above the horizon';
+    : overheadTotal
+      ? 'Showing ' + nfmt(up) + ' of ' + nfmt(overheadTotal) + ' currently above the horizon'
+      : nfmt(up) + ' above the horizon';
 
   placeLabels(labelQueue, moon
     ? {x:moon.x-moon.r-4, y:moon.y-moon.r-4, w:moon.r*2+8, h:moon.r*2+24}
@@ -2013,6 +2019,7 @@ function refreshExploreSet(){
       if(!took) break;
     }
 
+    overheadTotal = up.length;
     exploreSet = picked.length ? picked : null;
     exploreBusy = false;
     if(skyMode === 'sample'){ renderLegend(); drawLive(); }
