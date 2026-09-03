@@ -723,7 +723,8 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
       <span>Designed and developed by
         <a href="https://www.linkedin.com/in/ericksonblake/" target="_blank" rel="noopener">Blake Erickson</a>
         for Space Northwest</span>
-      <span>Amazon Leo spacecraft appear under their catalog name, Kuiper &middot;
+      <span>Not licensed for commercial use &middot;
+        Amazon Leo spacecraft appear under their catalog name, Kuiper &middot;
         Orbital data from <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a>
         &middot; manufacturer data from
         <a href="https://planet4589.org/space/gcat" target="_blank" rel="noopener">GCAT</a>
@@ -1924,9 +1925,9 @@ function setSkyMode(mode){
   const a = $('#modesample'), b = $('#modeall');
   a.setAttribute('aria-pressed', String(mode === 'sample'));
   b.setAttribute('aria-pressed', String(mode === 'all'));
-  a.textContent = 'Sample ' + nfmt(SATS.length);
-  b.textContent = fullSats ? 'All ' + nfmt(fullSats.length)
-                : odoFleet ? 'All ' + nfmt(odoFleet.count) : 'All';
+  /* The readout beside these already gives the counts, so the labels stay short. */
+  a.textContent = 'Explore';
+  b.textContent = 'All';
   renderFilters(); drawLive();
 }
 $('#modesample').onclick = ()=> setSkyMode('sample');
