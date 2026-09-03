@@ -1585,8 +1585,16 @@ function drawLive(){
 
   const moon = drawMoon(liveLayer, now, gmst);
 
+  /* The explore selection is chosen for the present moment, so it is only valid
+     at the present moment. Scrub or play forward and those ten have set, leaving
+     an empty sky and forcing a 10,884-object reselect on every frame.
+     Time-shifted, fall back to the roster sample: it is fixed, cheap, and spread
+     across every plane, so it always has something up whenever you look. It also
+     guarantees the satellite you clicked is drawn — passes are computed from that
+     same sample. */
+  const live = tOffset === 0;
   const source = (skyMode === 'all' && fullSats) ? fullSats
-               : (exploreSet && exploreSet.length) ? exploreSet
+               : (live && exploreSet && exploreSet.length) ? exploreSet
                : SATS;
   /* Keyed off the mode, not off which array is in use. Explore now draws from a
      selected set rather than SATS, and testing identity here silently turned off
@@ -2004,6 +2012,7 @@ function queueFullSky(){
    animation frames and only every few seconds. */
 function refreshExploreSet(){
   if(!fullSats || exploreBusy) return;
+  if(playing || tOffset !== 0) return;   // only meaningful at the present moment
   exploreBusy = true;
   const now = simNow(), gmst = SGP.gstime(now);
   const up = [];
@@ -2040,7 +2049,9 @@ function refreshExploreSet(){
     overheadTotal = up.length;
     exploreSet = picked.length ? picked : null;
     exploreBusy = false;
-    if(skyMode === 'sample'){ renderLegend(); drawLive(); }
+    // Redraw only if the view is still showing the present; otherwise leave the
+    // running animation alone.
+    if(skyMode === 'sample' && !playing && tOffset === 0){ renderLegend(); drawLive(); }
   })();
 }
 
@@ -2186,12 +2197,15 @@ $('#scrub').oninput = e=>{
   tOffset = Number(e.target.value)*60000;
   syncScrub(); tickClock(); drawLive(); renderPasses(); renderCallout();
 };
-$('#tlabel').onclick = ()=>{ setPlaying(false); tOffset = 0; syncScrub(); tickClock(); drawLive(); renderPasses(); renderCallout(); };
+$('#tlabel').onclick = ()=>{ setPlaying(false); tOffset = 0; syncScrub(); tickClock(); drawLive(); renderPasses(); renderCallout(); refreshExploreSet(); };
 
 /* Jump to a pass and watch it cross, rather than reading a time off a table. */
 window.previewPass = function(startMs){
   tOffset = Math.max(0, startMs - Date.now() - 45000);
   syncScrub(); tickClock(); setPlaying(true); drawLive();
+  // The selection is stale the moment time shifts; drop it so the sample takes
+  // over cleanly and nothing pops out mid-animation.
+  exploreSet = null;
   // No scrollIntoView: the callout sits inside the dome block, so the thing you
   // just asked to watch is already on screen. Scrolling only jumps the page.
 };
