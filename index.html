@@ -478,6 +478,8 @@ footer p b{color:var(--dim);font-weight:500}
   letter-spacing:var(--ls-2);text-transform:uppercase;
 }
 .odo .row sup{font-size:.6em;vertical-align:.45em;line-height:0}
+.odo .row.placeholder{opacity:.35}
+.odo .row.placeholder i{color:var(--dimmer)}
 /* Tablet and below: centre the block and both rows. Left alignment needs a long
    line to sit against, and at these widths there is no longer one. */
 @media (max-width:1024px){
@@ -1201,6 +1203,7 @@ function bigKm(km){
    must not leap forward when you preview a pass or run backwards on reset. */
 let odoFleet = null;
 let feedGenerated = null;   // when the elements were fetched, from the feed itself
+let feedApplied = false;   // true once the real feed has been read, however it went
 /* Two ways to read the sky. 'sample' draws a readable subset with names, shapes
    and trails. 'all' draws every matched spacecraft as a bare dot — at 10,000+
    objects the glyphs, labels and trails cost about 87ms a frame, so they go.
@@ -1233,6 +1236,17 @@ function computeOdometer(fleet){
 function tickOdometer(){
   const box = $('#odo');
   if(!box) return;
+  /* The page draws immediately from the bundled elements so nothing waits on the
+     network — but those are a 63-object sample, and rendering them showed "63"
+     and "44 billion km" for a beat before the real feed replaced them. Hold the
+     figures until the feed has been applied, and reserve the space so the layout
+     does not jump when they arrive. */
+  if(!feedApplied){
+    box.innerHTML =
+      '<span class="row placeholder"><b>&nbsp;</b><i>WA-built satellites in orbit</i></span>' +
+      '<span class="row placeholder"><b>&nbsp;</b><i>km flown</i></span>';
+    return;
+  }
   if(!odoCount || odoBase <= 0){ box.innerHTML = ''; return; }
   const km = odoBase + odoSpeed * (Date.now() - odoT0) / 1000;
   box.innerHTML =
@@ -1894,6 +1908,7 @@ function applyFeed(feed){
     SATS = buildSats(DEMO_TLES);
     feed = {ok:false, why:'The feed loaded but nothing propagated.'};
   }
+  feedApplied = true;
   odoFleet = feed.ok ? feed.fleet : null;
   feedGenerated = feed.ok ? Date.parse(feed.generated) : null;
   const isSample = !feed.ok || feed.demo;
@@ -2057,6 +2072,11 @@ async function boot(){
   // then swap in the feed the moment it arrives.
   SATS = buildSats(DEMO_TLES);
   renderFilters(); renderLegend(); renderVerification(); computeOdometer(odoFleet); setStatus('sample'); drawLive();
+  // Reserve the callout row immediately. Pass prediction takes a couple of
+  // seconds, and leaving it empty until then made the row appear to be missing
+  // and shifted everything below it when it arrived.
+  $('#callout').innerHTML =
+    '<div class="callout empty"><span class="k">Finding the next visible pass</span></div>';
 
   startClock();
   applyFeed(await loadFeed());
