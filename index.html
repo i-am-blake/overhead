@@ -297,9 +297,13 @@ input[type=range]:focus-visible{outline:2px solid var(--sodium);outline-offset:4
 .callout > *{padding:0 clamp(7px, .95vw, 12px)}
 .callout > *:first-child{padding-left:0}
 .callout .k{
-  font-size:inherit;color:var(--sodium);
-  text-shadow:0 0 10px rgba(255,138,30,.4);
+  font-size:inherit;color:var(--ice);
+  text-shadow:0 0 10px rgba(34,224,255,.4);
   padding:0;margin-right:clamp(7px, .95vw, 12px);white-space:nowrap;
+}
+/* Amber is reserved for the ten-minute window, where it is an instruction. */
+.callout.urgent .k{
+  color:var(--sodium);text-shadow:0 0 10px rgba(255,138,30,.45);
 }
 .callout .t{
   font-size:var(--fs-4);letter-spacing:var(--ls-2);color:var(--dim);white-space:nowrap;
@@ -1594,31 +1598,37 @@ function renderCallout(){
   const now = simNow().getTime();
   const mine = p => filter==='ALL' || p.sat.operator===filter;
 
+  /* Two states only. A pass that is not sunlit cannot be seen, so offering it as
+     a "best pass" invited people outside to look at nothing. When there is no
+     visible pass in the window, say that instead of substituting one. */
   const soon = passes.filter(p => p.peak > now && p.visible && p.el >= 25).filter(mine);
-  const fallback = passes.filter(p => p.peak > now && p.el >= 40).filter(mine)[0];
-  const p = soon[0] || fallback;
-  if(!p){ box.innerHTML = ''; return; }
+  const p = soon[0];
+  if(!p){
+    const end = passesComputedAt ? fmtTime(new Date(passesComputedAt + HORIZON_H*3600000)) : '';
+    box.innerHTML = '<div class="callout empty">' +
+      '<span class="k">No visible passes</span>' +
+      '<span class="dir">nothing sunlit and overhead' + (end ? ' before ' + end : '') + '</span>' +
+      '</div>';
+    return;
+  }
 
-  const worthGoing = !!soon[0];
+  const worthGoing = true;
   const mins = Math.round((p.peak - now)/60000);
   // "Next visible pass" is the resting state. "Go outside" is reserved for the
   // ten-minute window where it is an instruction rather than a description —
   // used more freely it stops meaning anything.
-  const label = !worthGoing ? 'Best pass'
-              : mins <= 10  ? 'Go outside'
-              :               'Next visible pass';
+  const label = mins <= 10 ? 'Go outside' : 'Next visible pass';
   const when = mins < 60 ? 'in ' + mins + ' min'
              : mins < 600 ? 'in ' + Math.round(mins/60) + 'h' : '';
 
   // One row: the cue, the time, where to look, what it is, and a way to preview it.
   box.innerHTML =
-    '<div class="callout' + (worthGoing ? '' : ' empty') + '">' +
+    '<div class="callout' + (mins <= 10 ? ' urgent' : '') + '">' +
       '<span class="k">' + label + '</span>' +
       '<span class="t">' + fmtTime(p.peak) + fmtDayIfNeeded(p.peak) +
         (when ? '<span class="rel">' + when + '</span>' : '') +
       '</span>' +
-      '<span class="dir">Look ' + compass(p.az) + ', ' + Math.round(p.el) + '&deg; up' +
-        (worthGoing ? '' : ' <span class="q">not sunlit</span>') + '</span>' +
+      '<span class="dir">Look ' + compass(p.az) + ', ' + Math.round(p.el) + '&deg; up</span>' +
       '<span class="who">' + p.sat.name + '</span>' +
       '<button class="chip watch" onclick="previewPass(' + p.start.getTime() + ')">' +
         '<span>Watch it cross</span>' + PLAY_GLYPH + '</button>' +
