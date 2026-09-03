@@ -1614,7 +1614,20 @@ function drawLive(){
      selected set rather than SATS, and testing identity here silently turned off
      names, glyphs and trails the moment that landed. */
   const dense = (skyMode === 'all');
-  const shown = source.filter(s => filter==='ALL' || s.operator===filter);
+  let shown = source.filter(s => filter==='ALL' || s.operator===filter);
+
+  /* Explore is capped at ten. The live selection already is, but the fallback
+     used when time is shifted was drawing the whole sample — so the cap held at
+     rest and not while scrubbing. Same picker, same limit, both paths. */
+  if(!dense && shown !== exploreSet && shown.length > EXPLORE_MAX){
+    const cand = [];
+    for(const s of shown){
+      const l = look(s.satrec, now, gmst);
+      if(l && l.el >= 0) cand.push({ s, el: l.el });
+    }
+    if(cand.length) shown = pickDiverse(cand, EXPLORE_MAX);
+  }
+
   const labelQueue = [];
 
   for(const s of shown){
@@ -2044,6 +2057,27 @@ function queueFullSky(){
 
    Propagating 10,884 objects costs about 87ms, so it runs in chunks across
    animation frames and only every few seconds. */
+/* Highest first within each operator, then one operator at a time, so a
+   mega-constellation cannot crowd out a single-satellite operator. */
+function pickDiverse(candidates, max){
+  const byOp = new Map();
+  candidates.sort((a,b) => b.el - a.el).forEach(x => {
+    if(!byOp.has(x.s.operator)) byOp.set(x.s.operator, []);
+    byOp.get(x.s.operator).push(x.s);
+  });
+  const picked = [], queues = [...byOp.values()];
+  while(picked.length < max){
+    let took = false;
+    for(const q of queues){
+      if(!q.length) continue;
+      picked.push(q.shift()); took = true;
+      if(picked.length >= max) break;
+    }
+    if(!took) break;
+  }
+  return picked;
+}
+
 function refreshExploreSet(){
   if(!fullSats || exploreBusy) return;
   if(playing || tOffset !== 0) return;   // only meaningful at the present moment
@@ -2061,25 +2095,7 @@ function refreshExploreSet(){
     }
     if(i < fullSats.length){ requestAnimationFrame(chunk); return; }
 
-    // group by operator, highest first within each
-    const byOp = new Map();
-    up.sort((a,b) => b.el - a.el).forEach(x => {
-      if(!byOp.has(x.s.operator)) byOp.set(x.s.operator, []);
-      byOp.get(x.s.operator).push(x.s);
-    });
-
-    // round-robin so a mega-constellation cannot crowd out a single-satellite operator
-    const picked = [], queues = [...byOp.values()];
-    while(picked.length < EXPLORE_MAX){
-      let took = false;
-      for(const q of queues){
-        if(!q.length) continue;
-        picked.push(q.shift()); took = true;
-        if(picked.length >= EXPLORE_MAX) break;
-      }
-      if(!took) break;
-    }
-
+    const picked = pickDiverse(up, EXPLORE_MAX);
     overheadTotal = up.length;
     exploreSet = picked.length ? picked : null;
     exploreBusy = false;
