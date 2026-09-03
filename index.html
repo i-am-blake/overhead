@@ -906,6 +906,11 @@ let tOffset = 0;
 let playing = false;
 const RATE = 60;              // 1 second of watching = 1 minute of sky
 const MAX_AHEAD = 840*60000;  // 14 h, matching the pass search window
+/* simNow follows the scrubber, so it drives anything that depicts the sky: the
+   dome, the clock, the preview. It must NOT drive the pass schedule. Scrubbing
+   ahead made real upcoming passes fall out of the table and the chip counts drop,
+   as though those passes had already happened. The schedule is a fact about the
+   world, not a view of it. */
 function simNow(){ return new Date(Date.now() + tOffset); }
 let passes = [];
 let passesComputedAt = 0;   // when the window was predicted from
@@ -1637,7 +1642,7 @@ function drawLive(){
 
 function renderCallout(){
   const box = $('#callout');
-  const now = simNow().getTime();
+  const now = Date.now();       // the next real pass, regardless of the scrubber
   const mine = p => filter==='ALL' || p.sat.operator===filter;
 
   /* Two states only. A pass that is not sunlit cannot be seen, so offering it as
@@ -1680,7 +1685,7 @@ function renderCallout(){
 function renderPasses(){
   const tb = $('#passes');
   tb.innerHTML = '';
-  const now = simNow().getTime();
+  const now = Date.now();       // real time: scrubbing previews, it does not consume passes
   $('#passcount').textContent = 'Calculating…';
   /* Count first, cap second. The render limit used to be applied before counting,
      so past 40 passes the header and the button both reported the cap instead of
@@ -1747,7 +1752,7 @@ function renderPasses(){
 }
 
 $('#showmore').onclick = function(){
-  const now = simNow().getTime();
+  const now = Date.now();
   const total = passes.filter(p => p.peak > now)
                       .filter(p => filter==='ALL' || p.sat.operator===filter).length;
   const renderable = Math.min(total, PASS_RENDER_CAP);
@@ -1853,7 +1858,7 @@ function renderFilters(){
      counts passes, so they count passes too. Counting spacecraft here put two
      different numbers for the same filter side by side — 3 on the chip, 7 in the
      header. Spacecraft counts are in the dome's operator key instead. */
-  const now = simNow().getTime();
+  const now = Date.now();       // matches renderPasses, so chips and header agree
   const upcoming = passes.filter(p => p.peak > now);
   const ready = passes.length > 0;
 
