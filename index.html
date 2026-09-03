@@ -202,7 +202,7 @@ svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 340px), 900px
 .track.vis{stroke:var(--sodium);opacity:.45}
 .sat{fill:var(--ice);opacity:.75}
 .sat.vis{fill:var(--sodium);opacity:1}
-.satlabel{font-size:var(--fs-1);font-weight:500;fill:var(--ink);font-family:var(--mono);letter-spacing:var(--ls-1)}
+.satlabel{font-size:var(--fs-3);font-weight:500;fill:var(--ink);font-family:var(--mono);letter-spacing:var(--ls-1)}
 .satlabel.vis{fill:var(--sodium)}
 .glow{fill:var(--sodium);opacity:.13}
 @keyframes breathe{0%,100%{opacity:.10}50%{opacity:.26}}
@@ -1497,7 +1497,7 @@ SHAPES.bus   = SHAPES.sat;
 const OUTLINE = '#04070C';
 
 function drawCraft(layer, x, y, headingDeg, tint, lit, elev, cls, spin){
-  const s = lit ? 1 : 0.62;
+  const s = lit ? 1.3 : 0.85;   // a touch larger; they were hard to pick out
   // A spent stage tumbles; everything else holds attitude.
   const rot = headingDeg + (cls === 'rocketbody' ? (spin||0) : 0);
   const g = el('g',{transform:'translate('+x.toFixed(1)+','+y.toFixed(1)+') rotate('+rot.toFixed(1)+') scale('+s+')'});
@@ -1570,10 +1570,12 @@ function placeLabels(queue, reserved){
   }
 }
 
-let liveLayer = null;
+let liveLayer = null, denseLayer = null;
+const densePool = [];   // reused circles for the All view
 function drawLive(){
   const svg = $('#dome');
   if(!liveLayer){ liveLayer = el('g',{}); svg.appendChild(liveLayer); }
+  if(!denseLayer){ denseLayer = el('g',{}); svg.appendChild(denseLayer); }
   while(liveLayer.firstChild) liveLayer.removeChild(liveLayer.firstChild);
 
   const now = simNow();
@@ -1593,6 +1595,7 @@ function drawLive(){
      guarantees the satellite you clicked is drawn — passes are computed from that
      same sample. */
   const live = tOffset === 0;
+  let drawn = 0;
   const source = (skyMode === 'all' && fullSats) ? fullSats
                : (live && exploreSet && exploreSet.length) ? exploreSet
                : SATS;
@@ -1618,10 +1621,18 @@ function drawLive(){
     const x = x0, y = y0 + bob;
 
     if(dense){
-      // 10,000+ objects: a dot each, no trail, no glyph, no label.
-      liveLayer.appendChild(el('circle',{
-        cx:x.toFixed(1), cy:y.toFixed(1), r: lit ? 2.6 : 1.7,
-        fill: lit ? tint : '#3E6A82', opacity: lit ? .95 : .6 }));
+      /* 10,000+ objects. Creating and destroying that many SVG nodes every draw
+         was the single biggest cost in All — the garbage alone stalled the frame.
+         Keep a pool instead and move the existing circles. */
+      let c = densePool[drawn];
+      if(!c){ c = el('circle',{}); densePool.push(c); denseLayer.appendChild(c); }
+      c.setAttribute('cx', x.toFixed(1));
+      c.setAttribute('cy', y.toFixed(1));
+      c.setAttribute('r', lit ? 3.4 : 2.3);
+      c.setAttribute('fill', lit ? tint : '#3E6A82');
+      c.setAttribute('opacity', lit ? .95 : .6);
+      if(c.style.display === 'none') c.style.display = '';
+      drawn++;
       continue;
     }
 
@@ -1671,6 +1682,14 @@ function drawLive(){
     // Every craft carries its name for the whole time it is up. Queued rather
     // than drawn here so the plates can be laid out together and land on top.
     if(!dense && l.el >= MIN_EL) labelQueue.push({x, y, name:s.name, lit, tint, el:l.el});
+  }
+
+  // park whatever the pool is not using this frame
+  for(let k = drawn; k < densePool.length; k++){
+    if(densePool[k].style.display !== 'none') densePool[k].style.display = 'none';
+  }
+  if(!dense && densePool.length && densePool[0].style.display !== 'none'){
+    densePool.forEach(c => c.style.display = 'none');
   }
 
   const d = $('#drawn');
