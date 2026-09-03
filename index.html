@@ -540,7 +540,9 @@ footer h3{
 }
 
 footer p i{font-style:italic;color:var(--dim)}
-footer a{color:var(--ice);text-underline-offset:3px}
+/* Amber marks the clickable elements everywhere else on the page, so links here
+   use it too rather than the cyan reserved for values and headings. */
+footer a{color:var(--sodium);text-underline-offset:3px}
 footer a:hover{color:var(--ink)}
 footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
 .colophon{
@@ -550,14 +552,14 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
   color:var(--dimmer);
 }
 .colophon a{
-  color:var(--ice);text-decoration:none;
-  border-bottom:1px solid rgba(34,224,255,.3);
-  text-shadow:0 0 10px rgba(34,224,255,.45);
+  color:var(--sodium);text-decoration:none;
+  border-bottom:1px solid rgba(255,138,30,.35);
+  text-shadow:0 0 10px rgba(255,138,30,.4);
   transition:.15s;
 }
 .colophon a:hover{
-  color:var(--ink);border-bottom-color:var(--ice);
-  text-shadow:0 0 14px rgba(34,224,255,.7);
+  color:var(--ink);border-bottom-color:var(--sodium);
+  text-shadow:0 0 14px rgba(255,138,30,.65);
 }
 @media (max-width:520px){ .colophon{justify-content:center;text-align:center} }
 
