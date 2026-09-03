@@ -357,8 +357,8 @@ for (const src of roster.sources) {
   hits = hits.filter(o => validTle(o.line1, o.line2) && !seen.has(o.norad));
   const stale = hits.filter(o => epochAgeDays(o.line1) > 14).length;
   fleetAll.push(...hits.map(o => ({
-    line1: o.line1, line2: o.line2, launched: launched.get(o.norad) || null,
-    operator: src.operator, cls: src.class ?? 'sat' })));
+    name: o.name, line1: o.line1, line2: o.line2, launched: launched.get(o.norad) || null,
+    operator: src.operator, cls: src.class ?? 'sat', built: src.built || '' })));
   hits = sample(hits, src.limit ?? 25);
   hits.forEach(o => seen.add(o.norad));
 
@@ -460,6 +460,9 @@ await fs.writeFile(OUT_FULL, JSON.stringify({
   generated: fleet.asOf,
   note: 'Every matched object, unsampled. Loaded only when the full-sky view is selected.',
   count: fleetAll.length,
-  objects: fleetAll.map(o => ({ o: o.operator, c: o.cls, l1: o.line1, l2: o.line2 }))
+  /* Names and build sites are included so the readable Explore view can draw from
+     this file too — it needs labels, not just positions. */
+  objects: fleetAll.map(o => ({ n: o.name, o: o.operator, c: o.cls, b: o.built,
+                                l1: o.line1, l2: o.line2 }))
 }) + '\n');
 console.log(`Wrote ${path.relative(ROOT, OUT_FULL)} — ${fleetAll.length} objects`);

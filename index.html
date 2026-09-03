@@ -1246,6 +1246,9 @@ let feedApplied = false;   // true once the real feed has been read, however it 
    Pass prediction always stays on the sample; predicting for the whole fleet
    would be 15 million propagations and would lock the browser. */
 let skyMode = 'sample';
+const EXPLORE_MIN = 10, EXPLORE_MAX = 20;
+let exploreSet = null;      // chosen from the whole fleet, refreshed periodically
+let exploreBusy = false;
 let fullSats = null;      // lazily loaded, cached
 let fullLoading = false;
 let odoBase = 0, odoSpeed = 0, odoT0 = 0, odoCount = 0;
@@ -1577,7 +1580,9 @@ function drawLive(){
 
   const moon = drawMoon(liveLayer, now, gmst);
 
-  const source = (skyMode === 'all' && fullSats) ? fullSats : SATS;
+  const source = (skyMode === 'all' && fullSats) ? fullSats
+               : (exploreSet && exploreSet.length) ? exploreSet
+               : SATS;
   const dense = source !== SATS;
   const shown = source.filter(s => filter==='ALL' || s.operator===filter);
   const labelQueue = [];
@@ -1961,6 +1966,59 @@ function applyFeed(feed){
 
 function refreshAll(){ drawLive(); computePasses(); }
 
+/* ============================== explore selection ==============================
+   A fixed sample cannot guarantee anything is overhead — at times the 209 drawn
+   left the sky nearly empty. So Explore picks from the whole fleet instead: find
+   everything actually above the horizon now, then take up to 20 of them, one
+   operator at a time, so every operator with something up there is represented
+   before any operator gets a second.
+
+   Nothing here is invented. Every object drawn is genuinely overhead; the only
+   choice being made is which of them to label and trail.
+
+   Propagating 10,884 objects costs about 87ms, so it runs in chunks across
+   animation frames and only every few seconds. */
+function refreshExploreSet(){
+  if(!fullSats || exploreBusy) return;
+  exploreBusy = true;
+  const now = simNow(), gmst = SGP.gstime(now);
+  const up = [];
+  let i = 0;
+
+  (function chunk(){
+    const until = Math.min(i + 1000, fullSats.length);
+    for(; i < until; i++){
+      const s = fullSats[i];
+      const l = look(s.satrec, now, gmst);
+      if(l && l.el >= MIN_EL) up.push({ s, el: l.el });
+    }
+    if(i < fullSats.length){ requestAnimationFrame(chunk); return; }
+
+    // group by operator, highest first within each
+    const byOp = new Map();
+    up.sort((a,b) => b.el - a.el).forEach(x => {
+      if(!byOp.has(x.s.operator)) byOp.set(x.s.operator, []);
+      byOp.get(x.s.operator).push(x.s);
+    });
+
+    // round-robin so a mega-constellation cannot crowd out a single-satellite operator
+    const picked = [], queues = [...byOp.values()];
+    while(picked.length < EXPLORE_MAX){
+      let took = false;
+      for(const q of queues){
+        if(!q.length) continue;
+        picked.push(q.shift()); took = true;
+        if(picked.length >= EXPLORE_MAX) break;
+      }
+      if(!took) break;
+    }
+
+    exploreSet = picked.length ? picked : null;
+    exploreBusy = false;
+    if(skyMode === 'sample'){ renderLegend(); drawLive(); }
+  })();
+}
+
 /* ============================== sky mode ============================== */
 async function loadFullSky(){
   if(fullSats || fullLoading) return;
@@ -1973,8 +2031,8 @@ async function loadFullSky(){
     fullSats = j.objects.map((o, i) => {
       const rec = SGP.twoline2satrec(o.l1, o.l2);
       if(rec.error) return null;
-      return { name:'', operator:o.o, cls:o.c, built:'', line1:o.l1, line2:o.l2,
-               satrec:rec, phase:(i*1.7)%6.283 };
+      return { name:o.n || '', operator:o.o, cls:o.c, built:o.b || '',
+               line1:o.l1, line2:o.l2, satrec:rec, phase:(i*1.7)%6.283 };
     }).filter(Boolean);
     if(!fullSats.length){
       $('#modeall').textContent = 'No data';
@@ -1990,7 +2048,7 @@ async function loadFullSky(){
     return;
   }
   fullLoading = false;
-  setSkyMode('all');
+  if(skyMode === 'all') setSkyMode('all');
 }
 
 function setSkyMode(mode){
@@ -2122,6 +2180,15 @@ async function boot(){
   startClock();
   applyFeed(await loadFeed());
   setSkyMode('sample');
+  /* Deferred so it never delays first paint. Explore falls back to the sampled
+     feed until this lands. */
+  setTimeout(async () => {
+    await loadFullSky();
+    if(!fullSats) return;
+    setSkyMode(skyMode);
+    refreshExploreSet();
+    setInterval(refreshExploreSet, 6000);
+  }, 1200);
 
   let last = performance.now(), acc = 0, odoAcc = 0;
   function frame(ts){
