@@ -507,12 +507,12 @@ footer .fbody{flex:1;min-width:0;max-width:none;margin:0}
 /* Below this the single line no longer fits beside the flasher, so the ping goes
    above and the line is allowed to wrap rather than overflow. */
 @media (max-width:700px){
-  /* Stacked, so the ping sits above the title rather than beside it. Its dot is
-     centred in a 52px box, which put it 26px right of where the text begins.
-     Pull the box left by half its width so the dot lands on the text edge, and
-     hold the padding at 26px so the expanding rings stay inside the border. */
+  /* Stacked, so the ping sits above the title rather than beside it. Match the
+     desktop reference point: the ring's outer edge sits on the content edge, the
+     same as it does in the row layout. Aligning the dot instead left the ring
+     visually outdented from the text. */
   footer{flex-direction:column;gap:10px;padding:22px 26px}
-  footer .ping{margin-left:-26px}
+  footer .ping{margin-left:0}
   footer h2{white-space:normal;line-height:1.4;margin-bottom:16px}
 }
 /* Centred column at a readable measure. The three-column grid gave 39 characters
