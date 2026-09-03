@@ -636,8 +636,8 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
       <span class="tlabel" id="tlabel">now</span>
       <span class="drawn" id="drawn"></span>
       <span class="skymode" role="group" aria-label="How much of the fleet to draw">
-        <button id="modesample" aria-pressed="true">Explore</button>
-        <button id="modeall" aria-pressed="false">All</button>
+        <button id="modesample" aria-pressed="true" title="A readable selection of what is overhead now, with names and trails">Explore</button>
+        <button id="modeall" aria-pressed="false" title="Every Washington-built satellite on orbit, drawn as plain dots">All</button>
       </span>
     </div>
     <div id="callout"></div>
@@ -1677,11 +1677,15 @@ function drawLive(){
   /* Only quote a denominator in All, where it is a real fact about the fleet.
      In Explore the total is a sampling decision, so "of 205" tells a visitor
      nothing and invites them to wonder what happened to the rest. */
-  if(d) d.textContent = dense
-    ? nfmt(up) + ' of ' + nfmt(shown.length) + ' above the horizon'
-    : overheadTotal
-      ? 'Showing ' + nfmt(up) + ' of ' + nfmt(overheadTotal) + ' currently above the horizon'
-      : nfmt(up) + ' above the horizon';
+  /* Three states, because the denominator means something different in each.
+     In All it is the whole fleet. In live Explore it is everything overhead right
+     now. Time-shifted, there is no honest denominator at all — the count comes
+     from the sample at a moment the selection was never made for, so quoting the
+     live total there would pair two different instants. */
+  if(d) d.textContent =
+      dense                   ? nfmt(up) + ' of ' + nfmt(shown.length) + ' above the horizon'
+    : (live && overheadTotal) ? 'Showing ' + nfmt(up) + ' of ' + nfmt(overheadTotal) + ' above the horizon now'
+    :                           nfmt(up) + ' above the horizon';
 
   placeLabels(labelQueue, moon
     ? {x:moon.x-moon.r-4, y:moon.y-moon.r-4, w:moon.r*2+8, h:moon.r*2+24}
