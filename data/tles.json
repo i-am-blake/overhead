@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-03T23:04:12.240Z",
+ "generated": "2026-09-03T23:10:53.368Z",
  "source": "CelesTrak GP active catalog (celestrak.org), fetched daily",
  "demo": false,
  "report": [
@@ -20,8 +20,8 @@
   },
   {
    "id": "loft-yam",
-   "count": 10,
-   "note": "14 matched, 10 kept"
+   "count": 14,
+   "note": "14 matched, 14 kept"
   },
   {
    "id": "sherpa",
@@ -88,8 +88,8 @@
   "count": 10880,
   "dated": 10880,
   "combinedSpeedKmS": 82968.61355550589,
-  "distanceKm": 5690688639997.845,
-  "asOf": "2026-09-03T23:04:12.213Z",
+  "distanceKm": 5690721919953.263,
+  "asOf": "2026-09-03T23:10:53.328Z",
   "catalogPayloads": 16509,
   "catalogTotal": 16511,
   "sharePct": 65.90344660488219,
@@ -98,7 +98,7 @@
    "Starcloud": 1,
    "BlackSky": 15,
    "Loft Orbital": 14,
-   "Spaceflight Inc.": 4,
+   "Spaceflight Industries": 4,
    "SpaceX": 10450,
    "Amazon": 391,
    "Hubble Network": 2
@@ -392,6 +392,19 @@
    "line2": "2 59126  97.5671  30.1013 0006912 315.7465  44.3226 15.38311987139377"
   },
   {
+   "name": "YAM-7",
+   "operator": "Loft Orbital",
+   "built": "Tukwila, WA",
+   "kind": "Hosted-payload bus, built by LeoStella",
+   "cls": "bus",
+   "verified": false,
+   "norad": 60504,
+   "launched": "2024-08-16",
+   "objectType": "PAY",
+   "line1": "1 60504U 2024-149 26246.16000597  .00004342  00000-0  13968-3 0  9999",
+   "line2": "2 60504  97.3731 326.1247 0004010  40.5113 319.6427 15.32770740113992"
+  },
+  {
    "name": "YAM-8",
    "operator": "Loft Orbital",
    "built": "Tukwila, WA",
@@ -416,6 +429,19 @@
    "objectType": "PAY",
    "line1": "1 64580U 2025-135 26246.28026954  .00001123  00000-0  11625-3 0  9993",
    "line2": "2 64580  97.7786 359.0836 0004622  94.2472 265.9275 14.92040152 65505"
+  },
+  {
+   "name": "YAM-9",
+   "operator": "Loft Orbital",
+   "built": "Tukwila, WA",
+   "kind": "Hosted-payload bus, built by LeoStella",
+   "cls": "bus",
+   "verified": false,
+   "norad": 66694,
+   "launched": "2025-11-28",
+   "objectType": "PAY",
+   "line1": "1 66694U 2025-276 26246.64512980  .00002532  00000-0  13649-3 0  9999",
+   "line2": "2 66694  97.4145 317.3337 0009722  48.3119 311.8944 15.15639255 42239"
   },
   {
    "name": "YAM-11",
@@ -457,6 +483,19 @@
    "line2": "2 68993  97.7786 142.2777 0001942 102.1062 258.0374 14.90443924 18311"
   },
   {
+   "name": "YAM-15",
+   "operator": "Loft Orbital",
+   "built": "Tukwila, WA",
+   "kind": "Hosted-payload bus, built by LeoStella",
+   "cls": "bus",
+   "verified": false,
+   "norad": 68997,
+   "launched": "2026-05-03",
+   "objectType": "PAY",
+   "line1": "1 68997U 2026-100 26245.60357876  .00000952  00000-0  10327-3 0  9994",
+   "line2": "2 68997  97.7781 141.7520 0002664  99.8188 260.3331 14.90477000 18235"
+  },
+  {
    "name": "YAM-12",
    "operator": "Loft Orbital",
    "built": "Tukwila, WA",
@@ -483,8 +522,21 @@
    "line2": "2 69008  97.7775 141.7659 0001986  72.1527 287.9907 14.90455796 18234"
   },
   {
+   "name": "YAM-17",
+   "operator": "Loft Orbital",
+   "built": "Tukwila, WA",
+   "kind": "Hosted-payload bus, built by LeoStella",
+   "cls": "bus",
+   "verified": false,
+   "norad": 69884,
+   "launched": "2026-07-07",
+   "objectType": "PAY",
+   "line1": "1 69884U 2026-156 26246.66311116  .00000943  00000-0  10171-3 0  9992",
+   "line2": "2 69884  97.5605 145.3127 0002862  86.9177 273.2369 14.90590749  8691"
+  },
+  {
    "name": "CELESTIS-17 & SHERPA-FX1",
-   "operator": "Spaceflight Inc.",
+   "operator": "Spaceflight Industries",
    "built": "Seattle, WA",
    "kind": "Orbital transfer vehicle",
    "cls": "tug",
@@ -497,7 +549,7 @@
   },
   {
    "name": "SHERPA-FX2 & TAGSAT-2",
-   "operator": "Spaceflight Inc.",
+   "operator": "Spaceflight Industries",
    "built": "Seattle, WA",
    "kind": "Orbital transfer vehicle",
    "cls": "tug",
@@ -510,7 +562,7 @@
   },
   {
    "name": "SHERPA-AC1",
-   "operator": "Spaceflight Inc.",
+   "operator": "Spaceflight Industries",
    "built": "Seattle, WA",
    "kind": "Orbital transfer vehicle",
    "cls": "tug",
@@ -523,7 +575,7 @@
   },
   {
    "name": "SHERPA-LTC2",
-   "operator": "Spaceflight Inc.",
+   "operator": "Spaceflight Industries",
    "built": "Seattle, WA",
    "kind": "Orbital transfer vehicle",
    "cls": "tug",
