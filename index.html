@@ -1057,6 +1057,10 @@ function computePasses(){
     else{
       passes = found.sort((a,b)=>a.peak-b.peak);
       passesComputedAt = start.getTime();
+      /* Only now fetch the full fleet. Starting it earlier put a 2MB download and
+         a JSON parse in competition with pass prediction for the main thread,
+         which is the slowest moment of the load. */
+      if(!fullSats && !fullLoading) queueFullSky();
       $('#prog').style.width = '0%';
       renderFilters();          // counts are pass counts, so they need the result
       renderPasses(); renderCallout();
@@ -1246,7 +1250,7 @@ let feedApplied = false;   // true once the real feed has been read, however it 
    Pass prediction always stays on the sample; predicting for the whole fleet
    would be 15 million propagations and would lock the browser. */
 let skyMode = 'sample';
-const EXPLORE_MIN = 10, EXPLORE_MAX = 20;
+const EXPLORE_MAX = 10;
 let exploreSet = null;      // chosen from the whole fleet, refreshed periodically
 let exploreBusy = false;
 let overheadTotal = 0;   // everything above the horizon fleet-wide, for the readout
@@ -1972,6 +1976,20 @@ function applyFeed(feed){
 
 function refreshAll(){ drawLive(); computePasses(); }
 
+let fullQueued = false;
+function queueFullSky(){
+  if(fullQueued) return;
+  fullQueued = true;
+  const go = async () => {
+    await loadFullSky();
+    if(!fullSats) return;
+    setSkyMode(skyMode);
+    refreshExploreSet();
+    setInterval(refreshExploreSet, 6000);
+  };
+  'requestIdleCallback' in window ? requestIdleCallback(go, {timeout:4000}) : setTimeout(go, 600);
+}
+
 /* ============================== explore selection ==============================
    A fixed sample cannot guarantee anything is overhead — at times the 209 drawn
    left the sky nearly empty. So Explore picks from the whole fleet instead: find
@@ -1996,7 +2014,7 @@ function refreshExploreSet(){
     for(; i < until; i++){
       const s = fullSats[i];
       const l = look(s.satrec, now, gmst);
-      if(l && l.el >= MIN_EL) up.push({ s, el: l.el });
+      if(l && l.el >= 0) up.push({ s, el: l.el });   // 0 deg: the horizon, matching drawLive
     }
     if(i < fullSats.length){ requestAnimationFrame(chunk); return; }
 
@@ -2035,12 +2053,13 @@ async function loadFullSky(){
     const r = await fetch('./data/tles-full.json', {cache:'no-cache'});
     if(!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
-    fullSats = j.objects.map((o, i) => {
-      const rec = SGP.twoline2satrec(o.l1, o.l2);
+    let i = 0;
+    fullSats = (j.groups || []).flatMap(g => g.s.map(([nm, l1, l2]) => {
+      const rec = SGP.twoline2satrec(l1, l2);
       if(rec.error) return null;
-      return { name:o.n || '', operator:o.o, cls:o.c, built:o.b || '',
-               line1:o.l1, line2:o.l2, satrec:rec, phase:(i*1.7)%6.283 };
-    }).filter(Boolean);
+      return { name:nm || '', operator:g.o, cls:g.c, built:g.b || '',
+               line1:l1, line2:l2, satrec:rec, phase:((i++)*1.7)%6.283 };
+    })).filter(Boolean);
     if(!fullSats.length){
       $('#modeall').textContent = 'No data';
       $('#modeall').title = 'The full-fleet file loaded but no element sets could be read from it.';
@@ -2187,15 +2206,6 @@ async function boot(){
   startClock();
   applyFeed(await loadFeed());
   setSkyMode('sample');
-  /* Deferred so it never delays first paint. Explore falls back to the sampled
-     feed until this lands. */
-  setTimeout(async () => {
-    await loadFullSky();
-    if(!fullSats) return;
-    setSkyMode(skyMode);
-    refreshExploreSet();
-    setInterval(refreshExploreSet, 6000);
-  }, 1200);
 
   let last = performance.now(), acc = 0, odoAcc = 0;
   function frame(ts){

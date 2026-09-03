@@ -460,9 +460,13 @@ await fs.writeFile(OUT_FULL, JSON.stringify({
   generated: fleet.asOf,
   note: 'Every matched object, unsampled. Loaded only when the full-sky view is selected.',
   count: fleetAll.length,
-  /* Names and build sites are included so the readable Explore view can draw from
-     this file too — it needs labels, not just positions. */
-  objects: fleetAll.map(o => ({ n: o.name, o: o.operator, c: o.cls, b: o.built,
-                                l1: o.line1, l2: o.line2 }))
+  /* Grouped by operator so the operator, class and build site are written once
+     each rather than 10,884 times. Names are included because Explore draws from
+     this file and needs labels, not just positions. */
+  groups: Object.values(fleetAll.reduce((acc, o) => {
+    (acc[o.operator] ??= { o: o.operator, c: o.cls, b: o.built, s: [] })
+      .s.push([o.name, o.line1, o.line2]);
+    return acc;
+  }, {}))
 }) + '\n');
 console.log(`Wrote ${path.relative(ROOT, OUT_FULL)} — ${fleetAll.length} objects`);
