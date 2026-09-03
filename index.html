@@ -636,7 +636,7 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
       <span class="tlabel" id="tlabel">now</span>
       <span class="drawn" id="drawn"></span>
       <span class="skymode" role="group" aria-label="How much of the fleet to draw">
-        <button id="modesample" aria-pressed="true">Sample</button>
+        <button id="modesample" aria-pressed="true">Explore</button>
         <button id="modeall" aria-pressed="false">All</button>
       </span>
     </div>
@@ -2053,13 +2053,21 @@ async function loadFullSky(){
     const r = await fetch('./data/tles-full.json', {cache:'no-cache'});
     if(!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
-    let i = 0;
-    fullSats = (j.groups || []).flatMap(g => g.s.map(([nm, l1, l2]) => {
-      const rec = SGP.twoline2satrec(l1, l2);
+    /* Two shapes are accepted. The grouped form is current; the flat form is what
+       the feed looked like before, and a page can deploy hours ahead of the next
+       data refresh. Reading only the new one left All empty in that window. */
+    const flat = j.groups
+      ? j.groups.flatMap(g => g.s.map(([nm, l1, l2]) =>
+          ({ name:nm || '', operator:g.o, cls:g.c, built:g.b || '', l1, l2 })))
+      : (j.objects || []).map(o =>
+          ({ name:o.n || '', operator:o.o, cls:o.c, built:o.b || '', l1:o.l1, l2:o.l2 }));
+
+    fullSats = flat.map((o, i) => {
+      const rec = SGP.twoline2satrec(o.l1, o.l2);
       if(rec.error) return null;
-      return { name:nm || '', operator:g.o, cls:g.c, built:g.b || '',
-               line1:l1, line2:l2, satrec:rec, phase:((i++)*1.7)%6.283 };
-    })).filter(Boolean);
+      return { name:o.name, operator:o.operator, cls:o.cls, built:o.built,
+               line1:o.l1, line2:o.l2, satrec:rec, phase:(i*1.7)%6.283 };
+    }).filter(Boolean);
     if(!fullSats.length){
       $('#modeall').textContent = 'No data';
       $('#modeall').title = 'The full-fleet file loaded but no element sets could be read from it.';
