@@ -1535,15 +1535,26 @@ function placeLabels(queue, reserved){
   queue.sort((a,b) => b.el - a.el);
 
   for(const it of queue){
-    const w = it.name.length*5.3 + 13, hh = 15;
+    // Sized for --fs-3. At the old 5.3 the box was narrower than its own text,
+    // so labels overlapped before the collision test ever saw them touch.
+    const w = it.name.length*6.4 + 15, hh = 17;
+    /* Try progressively further out rather than dropping the label. With ten
+       objects and larger text, six slots ran out too easily and names vanished. */
     const slots = [
-      {x: it.x+16,      y: it.y-7.5,  lead:false},
-      {x: it.x-16-w,    y: it.y-7.5,  lead:false},
-      {x: it.x-w/2,     y: it.y-26,   lead:true},
-      {x: it.x-w/2,     y: it.y+11,   lead:true},
-      {x: it.x+16,      y: it.y-25,   lead:true},
-      {x: it.x-16-w,    y: it.y+10,   lead:true}
+      {x: it.x+18,      y: it.y-hh/2, lead:false},
+      {x: it.x-18-w,    y: it.y-hh/2, lead:false},
+      {x: it.x-w/2,     y: it.y-28,   lead:true},
+      {x: it.x-w/2,     y: it.y+13,   lead:true},
+      {x: it.x+18,      y: it.y-27,   lead:true},
+      {x: it.x-18-w,    y: it.y+12,   lead:true}
     ];
+    for(const r of [34, 48, 62]){
+      for(const a of [-45, 45, -135, 135, -90, 90, 0, 180]){
+        const rad = a*Math.PI/180;
+        slots.push({ x: it.x + Math.cos(rad)*r - w/2,
+                     y: it.y + Math.sin(rad)*r - hh/2, lead:true });
+      }
+    }
     let slot = null;
     for(const s of slots){ if(!hits({x:s.x,y:s.y,w,h:hh})){ slot = s; break; } }
     if(!slot) continue;
@@ -1750,7 +1761,7 @@ function renderCallout(){
       '</span>' +
       '<span class="dir">Look ' + compass(p.az) + ', ' + Math.round(p.el) + '&deg; up</span>' +
       '<span class="who">' + p.sat.name + '</span>' +
-      '<button class="chip watch" onclick="previewPass(' + p.start.getTime() + ')">' +
+      '<button class="chip watch" onclick="previewPass(' + p.peak.getTime() + ')">' +
         '<span>Watch it cross</span>' + PLAY_GLYPH + '</button>' +
     '</div>';
 }
@@ -1796,8 +1807,8 @@ function renderPasses(){
     if(p.visible) tr.className = 'vis';
     tr.tabIndex = 0;
     tr.title = 'Watch this pass on the dome';
-    tr.onclick = ()=> previewPass(p.start.getTime());
-    tr.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); previewPass(p.start.getTime()); } };
+    tr.onclick = ()=> previewPass(p.peak.getTime());
+    tr.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); previewPass(p.peak.getTime()); } };
     const dur = Math.round((p.end - p.start)/60000);
     tr.innerHTML =
       '<td class="t">' + fmtTime(p.peak) + fmtDayIfNeeded(p.peak) +
@@ -2223,8 +2234,11 @@ $('#scrub').oninput = e=>{
 $('#tlabel').onclick = ()=>{ setPlaying(false); tOffset = 0; syncScrub(); tickClock(); drawLive(); renderPasses(); renderCallout(); refreshExploreSet(); };
 
 /* Jump to a pass and watch it cross, rather than reading a time off a table. */
-window.previewPass = function(startMs){
-  tOffset = Math.max(0, startMs - Date.now() - 45000);
+window.previewPass = function(peakMs){
+  /* Aim just short of the peak. Starting 45s before the rise meant watching it
+     climb from the horizon first — about four seconds of nothing much before the
+     part worth seeing. */
+  tOffset = Math.max(0, peakMs - Date.now() - 40000);
   syncScrub(); tickClock(); setPlaying(true); drawLive();
   // The selection is stale the moment time shifts; drop it so the sample takes
   // over cleanly and nothing pops out mid-animation.
