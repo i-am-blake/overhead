@@ -1625,7 +1625,7 @@ function drawLive(){
       const l = look(s.satrec, now, gmst);
       if(l && l.el >= 0) cand.push({ s, el: l.el });
     }
-    if(cand.length) shown = pickDiverse(cand, EXPLORE_MAX);
+    if(cand.length){ shown = pickDiverse(cand, EXPLORE_MAX); overheadTotal = cand.length; }
   }
 
   const labelQueue = [];
@@ -1726,9 +1726,9 @@ function drawLive(){
      from the sample at a moment the selection was never made for, so quoting the
      live total there would pair two different instants. */
   if(d) d.textContent =
-      dense                   ? nfmt(up) + ' of ' + nfmt(shown.length) + ' above the horizon'
-    : (live && overheadTotal) ? 'Showing ' + nfmt(up) + ' of ' + nfmt(overheadTotal) + ' above the horizon now'
-    :                           nfmt(up) + ' above the horizon';
+      dense          ? nfmt(up) + ' of ' + nfmt(shown.length) + ' above the horizon'
+    : overheadTotal  ? nfmt(up) + ' of ' + nfmt(overheadTotal) + ' shown'
+    :                  nfmt(up) + ' shown';
 
   placeLabels(labelQueue, moon
     ? {x:moon.x-moon.r-4, y:moon.y-moon.r-4, w:moon.r*2+8, h:moon.r*2+24}
@@ -2268,10 +2268,12 @@ window.previewPass = function(peakMs){
 /* ============================== boot ============================== */
 async function boot(){
   $('#dome').appendChild(drawFrame());
-  // Draw immediately from the bundled elements so nothing waits on the network,
-  // then swap in the feed the moment it arrives.
-  SATS = buildSats(DEMO_TLES);
-  renderFilters(); renderLegend(); renderVerification(); computeOdometer(odoFleet); setStatus('sample'); drawLive();
+  /* The frame — stars, horizon, Rainier, the Moon — goes up immediately. The
+     satellites do not. Drawing the bundled sample first and swapping in the feed
+     a moment later meant the sky visibly rearranged itself as the page settled.
+     Better an empty sky for a beat than a wrong one that jumps. */
+  SATS = buildSats(DEMO_TLES);          // fallback only, if the feed cannot load
+  renderFilters(); renderLegend(); renderVerification(); computeOdometer(odoFleet); setStatus('sample');
   // Reserve the callout row immediately. Pass prediction takes a couple of
   // seconds, and leaving it empty until then made the row appear to be missing
   // and shifted everything below it when it arrived.
