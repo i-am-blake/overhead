@@ -1057,10 +1057,6 @@ function computePasses(){
     else{
       passes = found.sort((a,b)=>a.peak-b.peak);
       passesComputedAt = start.getTime();
-      /* Only now fetch the full fleet. Starting it earlier put a 2MB download and
-         a JSON parse in competition with pass prediction for the main thread,
-         which is the slowest moment of the load. */
-      if(!fullSats && !fullLoading) queueFullSky();
       $('#prog').style.width = '0%';
       renderFilters();          // counts are pass counts, so they need the result
       renderPasses(); renderCallout();
@@ -1251,8 +1247,6 @@ let feedApplied = false;   // true once the real feed has been read, however it 
    would be 15 million propagations and would lock the browser. */
 let skyMode = 'sample';
 const EXPLORE_MAX = 10;
-let exploreSet = null;      // chosen from the whole fleet, refreshed periodically
-let exploreBusy = false;
 let overheadTotal = 0;   // everything above the horizon fleet-wide, for the readout
 let fullSats = null;      // lazily loaded, cached
 let fullLoading = false;
@@ -1607,19 +1601,20 @@ function drawLive(){
      same sample. */
   const live = tOffset === 0;
   let drawn = 0;
-  const source = (skyMode === 'all' && fullSats) ? fullSats
-               : (live && exploreSet && exploreSet.length) ? exploreSet
-               : SATS;
+  /* Explore draws the roster sample, as it did originally. The sample already
+     contains every satellite from every small operator, so nothing is ever
+     crowded out — selecting from the full fleet only changed which Starlinks
+     were dropped, and cost a 2MB download and 10,884 satrecs at load to do it.
+     The full fleet is fetched only when All is asked for. */
+  const source = (skyMode === 'all' && fullSats) ? fullSats : SATS;
   /* Keyed off the mode, not off which array is in use. Explore now draws from a
      selected set rather than SATS, and testing identity here silently turned off
      names, glyphs and trails the moment that landed. */
   const dense = (skyMode === 'all');
   let shown = source.filter(s => filter==='ALL' || s.operator===filter);
 
-  /* Explore is capped at ten. The live selection already is, but the fallback
-     used when time is shifted was drawing the whole sample — so the cap held at
-     rest and not while scrubbing. Same picker, same limit, both paths. */
-  if(!dense && shown !== exploreSet && shown.length > EXPLORE_MAX){
+  /* Capped at ten, highest first, one operator at a time. */
+  if(!dense && shown.length > EXPLORE_MAX){
     const cand = [];
     for(const s of shown){
       const l = look(s.satrec, now, gmst);
@@ -2031,32 +2026,6 @@ function applyFeed(feed){
 
 function refreshAll(){ drawLive(); computePasses(); }
 
-let fullQueued = false;
-function queueFullSky(){
-  if(fullQueued) return;
-  fullQueued = true;
-  const go = async () => {
-    await loadFullSky();
-    if(!fullSats) return;
-    setSkyMode(skyMode);
-    refreshExploreSet();
-    setInterval(refreshExploreSet, 6000);
-  };
-  'requestIdleCallback' in window ? requestIdleCallback(go, {timeout:4000}) : setTimeout(go, 600);
-}
-
-/* ============================== explore selection ==============================
-   A fixed sample cannot guarantee anything is overhead — at times the 209 drawn
-   left the sky nearly empty. So Explore picks from the whole fleet instead: find
-   everything actually above the horizon now, then take up to 20 of them, one
-   operator at a time, so every operator with something up there is represented
-   before any operator gets a second.
-
-   Nothing here is invented. Every object drawn is genuinely overhead; the only
-   choice being made is which of them to label and trail.
-
-   Propagating 10,884 objects costs about 87ms, so it runs in chunks across
-   animation frames and only every few seconds. */
 /* Highest first within each operator, then one operator at a time, so a
    mega-constellation cannot crowd out a single-satellite operator. */
 function pickDiverse(candidates, max){
@@ -2076,33 +2045,6 @@ function pickDiverse(candidates, max){
     if(!took) break;
   }
   return picked;
-}
-
-function refreshExploreSet(){
-  if(!fullSats || exploreBusy) return;
-  if(playing || tOffset !== 0) return;   // only meaningful at the present moment
-  exploreBusy = true;
-  const now = simNow(), gmst = SGP.gstime(now);
-  const up = [];
-  let i = 0;
-
-  (function chunk(){
-    const until = Math.min(i + 1000, fullSats.length);
-    for(; i < until; i++){
-      const s = fullSats[i];
-      const l = look(s.satrec, now, gmst);
-      if(l && l.el >= 0) up.push({ s, el: l.el });   // 0 deg: the horizon, matching drawLive
-    }
-    if(i < fullSats.length){ requestAnimationFrame(chunk); return; }
-
-    const picked = pickDiverse(up, EXPLORE_MAX);
-    overheadTotal = up.length;
-    exploreSet = picked.length ? picked : null;
-    exploreBusy = false;
-    // Redraw only if the view is still showing the present; otherwise leave the
-    // running animation alone.
-    if(skyMode === 'sample' && !playing && tOffset === 0){ renderLegend(); drawLive(); }
-  })();
 }
 
 /* ============================== sky mode ============================== */
@@ -2247,7 +2189,7 @@ $('#scrub').oninput = e=>{
   tOffset = Number(e.target.value)*60000;
   syncScrub(); tickClock(); drawLive(); renderPasses(); renderCallout();
 };
-$('#tlabel').onclick = ()=>{ setPlaying(false); tOffset = 0; syncScrub(); tickClock(); drawLive(); renderPasses(); renderCallout(); refreshExploreSet(); };
+$('#tlabel').onclick = ()=>{ setPlaying(false); tOffset = 0; syncScrub(); tickClock(); drawLive(); renderPasses(); renderCallout(); };
 
 /* Jump to a pass and watch it cross, rather than reading a time off a table. */
 window.previewPass = function(peakMs){
@@ -2258,7 +2200,6 @@ window.previewPass = function(peakMs){
   syncScrub(); tickClock(); setPlaying(true); drawLive();
   // The selection is stale the moment time shifts; drop it so the sample takes
   // over cleanly and nothing pops out mid-animation.
-  exploreSet = null;
   // No scrollIntoView: the callout sits inside the dome block, so the thing you
   // just asked to watch is already on screen. Scrolling only jumps the page.
 };
