@@ -1057,6 +1057,15 @@ function computePasses(){
     else{
       passes = found.sort((a,b)=>a.peak-b.peak);
       passesComputedAt = start.getTime();
+      /* Pass prediction is the last heavy thing on the critical path. Once it is
+         done, fetch the full fleet quietly so All is instant when asked for. It
+         must not disturb what is on screen, so no redraw follows. */
+      if(!fullSats && !fullLoading && !fullQueued){
+        fullQueued = true;
+        const go = () => loadFullSky();
+        'requestIdleCallback' in window ? requestIdleCallback(go, {timeout:8000})
+                                        : setTimeout(go, 2500);
+      }
       $('#prog').style.width = '0%';
       renderFilters();          // counts are pass counts, so they need the result
       renderPasses(); renderCallout();
@@ -1250,6 +1259,7 @@ const EXPLORE_MAX = 10;
 let overheadTotal = 0;   // everything above the horizon fleet-wide, for the readout
 let fullSats = null;      // lazily loaded, cached
 let fullLoading = false;
+let fullQueued = false;
 let odoBase = 0, odoSpeed = 0, odoT0 = 0, odoCount = 0;
 
 /* The dome draws a readable sample, so summing what is on screen understates the
@@ -1720,10 +1730,10 @@ function drawLive(){
      now. Time-shifted, there is no honest denominator at all — the count comes
      from the sample at a moment the selection was never made for, so quoting the
      live total there would pair two different instants. */
-  if(d) d.textContent =
-      dense          ? nfmt(up) + ' of ' + nfmt(shown.length) + ' above the horizon'
-    : overheadTotal  ? nfmt(up) + ' of ' + nfmt(overheadTotal) + ' shown'
-    :                  nfmt(up) + ' shown';
+  // Only meaningful in All, where the denominator is the whole fleet.
+  if(d) d.textContent = dense
+    ? nfmt(up) + ' of ' + nfmt(shown.length) + ' above the horizon'
+    : '';
 
   placeLabels(labelQueue, moon
     ? {x:moon.x-moon.r-4, y:moon.y-moon.r-4, w:moon.r*2+8, h:moon.r*2+24}
@@ -2051,7 +2061,8 @@ function pickDiverse(candidates, max){
 async function loadFullSky(){
   if(fullSats || fullLoading) return;
   fullLoading = true;
-  $('#modeall').textContent = 'Loading\u2026';
+  const asked = skyMode === 'all';          // only speak up if the user is waiting
+  if(asked) $('#modeall').textContent = 'Loading\u2026';
   try{
     const r = await fetch('./data/tles-full.json', {cache:'no-cache'});
     if(!r.ok) throw new Error('HTTP ' + r.status);
@@ -2065,27 +2076,45 @@ async function loadFullSky(){
       : (j.objects || []).map(o =>
           ({ name:o.n || '', operator:o.o, cls:o.c, built:o.b || '', l1:o.l1, l2:o.l2 }));
 
-    fullSats = flat.map((o, i) => {
-      const rec = SGP.twoline2satrec(o.l1, o.l2);
-      if(rec.error) return null;
-      return { name:o.name, operator:o.operator, cls:o.cls, built:o.built,
-               line1:o.l1, line2:o.l2, satrec:rec, phase:(i*1.7)%6.283 };
-    }).filter(Boolean);
+    /* Building 10,884 satrecs in one pass locks the main thread for a beat.
+       Chunk it across animation frames so a background preload costs nothing
+       visible. */
+    const out = [];
+    await new Promise(resolve => {
+      let i = 0;
+      (function chunk(){
+        const until = Math.min(i + 800, flat.length);
+        for(; i < until; i++){
+          const o = flat[i];
+          const rec = SGP.twoline2satrec(o.l1, o.l2);
+          if(rec.error) continue;
+          out.push({ name:o.name, operator:o.operator, cls:o.cls, built:o.built,
+                     line1:o.l1, line2:o.l2, satrec:rec, phase:(i*1.7)%6.283 });
+        }
+        if(i < flat.length) requestAnimationFrame(chunk); else resolve();
+      })();
+    });
+    fullSats = out;
     if(!fullSats.length){
-      $('#modeall').textContent = 'No data';
-      $('#modeall').title = 'The full-fleet file loaded but no element sets could be read from it.';
+      if(asked){
+        $('#modeall').textContent = 'No data';
+        $('#modeall').title = 'The full-fleet file loaded but no element sets could be read from it.';
+      }
       fullSats = null; fullLoading = false; return;
     }
   }catch(e){
     // Most likely the daily refresh has not written data/tles-full.json yet.
-    $('#modeall').textContent = 'Retry';
-    $('#modeall').title = 'The full-fleet file is not published yet. It is written by the daily refresh.';
+    if(asked){
+      $('#modeall').textContent = 'Retry';
+      $('#modeall').title = 'The full-fleet file is not published yet. It is written by the daily refresh.';
+    }
+    fullQueued = false;
     fullLoading = false;
     fullSats = null;
     return;
   }
   fullLoading = false;
-  if(skyMode === 'all') setSkyMode('all');
+  if(skyMode === 'all') setSkyMode('all');   // silent unless the user is there
 }
 
 function setSkyMode(mode){
