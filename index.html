@@ -289,6 +289,25 @@ input[type=range]:focus-visible{outline:2px solid var(--sodium);outline-offset:4
   letter-spacing:var(--ls-4);text-transform:uppercase;color:var(--dimmer);
   padding-bottom:7px;border-bottom:1px solid var(--rule-soft);
 }
+.fleet{margin-top:26px;padding-top:20px;border-top:1px solid var(--rule-soft)}
+.fleet h3{
+  font-size:var(--fs-1);letter-spacing:var(--ls-4);text-transform:uppercase;
+  color:var(--dim);margin:0 0 6px;font-weight:400;
+}
+.fnote{font-size:var(--fs-2);color:var(--dimmer);margin:0 0 14px;letter-spacing:var(--ls-1)}
+.fbig{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--rule-soft)}
+.frow{display:flex;align-items:center;gap:12px;margin-bottom:7px}
+.fname{
+  flex:0 0 clamp(120px,17vw,180px);font-size:var(--fs-3);color:var(--dim);
+  letter-spacing:var(--ls-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.fbar{flex:1;height:9px;background:var(--rule-soft);position:relative;min-width:0}
+.fbar i{position:absolute;inset:0 auto 0 0;display:block}
+.fnum{
+  flex:0 0 46px;text-align:right;font-size:var(--fs-3);color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+@media (max-width:560px){ .fname{flex-basis:104px} }
 .litems{display:flex;flex-wrap:wrap;gap:9px 16px}
 .litem{
   display:flex;align-items:center;gap:8px;
@@ -662,6 +681,7 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
         <div class="litems" id="key-operator"></div>
       </div>
     </div>
+    <div class="fleet" id="fleet"></div>
   </section>
 
   <section class="sect">
@@ -1906,6 +1926,46 @@ function renderVerification(){
   if(node) node.textContent = '';
 }
 
+/* The whole fleet, not the drawn sample. These counts come from the feed, which
+   computes them over every matched object before sampling. Broadband is listed
+   last and set apart: at 10,791 of 10,830 it is most of the fleet, and leading
+   with it makes everything else look like rounding error. */
+function renderFleet(){
+  const box = $('#fleet');
+  if(!box) return;
+  const by = odoFleet && odoFleet.byOperator;
+  if(!by){ box.innerHTML = ''; return; }
+
+  const CLS = {};
+  SATS.forEach(s => { CLS[s.operator] = s.cls; });
+  const rows = Object.entries(by)
+    .map(([op, n]) => ({ op, n, cls: CLS[op] || 'sat' }))
+    .sort((a, b) => a.n - b.n);
+
+  const big = rows.filter(r => r.cls === 'broadband');
+  const rest = rows.filter(r => r.cls !== 'broadband');
+  const restTotal = rest.reduce((s, r) => s + r.n, 0);
+  const bigTotal = big.reduce((s, r) => s + r.n, 0);
+  const max = Math.max(...rest.map(r => r.n), 1);
+
+  const bar = r =>
+    '<div class="frow">' +
+      '<span class="fname">' + r.op + '</span>' +
+      '<span class="fbar"><i style="width:' + Math.max(2, r.n / max * 100).toFixed(1) +
+        '%;background:' + opColor(r.op) + '"></i></span>' +
+      '<span class="fnum">' + nfmt(r.n) + '</span>' +
+    '</div>';
+
+  box.innerHTML =
+    '<h3>Washington-built, on orbit now</h3>' +
+    '<p class="fnote">Everything except the broadband constellations &mdash; ' +
+      nfmt(restTotal) + ' spacecraft doing ' + new Set(rest.map(r => r.cls)).size +
+      ' different jobs.</p>' +
+    rest.map(bar).join('') +
+    '<p class="fnote fbig">Broadband: ' + nfmt(bigTotal) + ' more, from ' +
+      big.map(r => r.op).join(' and ') + '.</p>';
+}
+
 function renderLegend(){
   // Visibility, not brightness: in astronomy "brightness" means magnitude, which
   // this does not compute. Parallel Answer — description structure, and honest
@@ -1927,8 +1987,9 @@ function renderLegend(){
     const present = [...new Set(SATS.map(s => s.cls))]
       .sort((a,b) => order.indexOf(a) - order.indexOf(b));
     for(const c of present){
-      kc.appendChild(litem(glyph(c, 'var(--dim)', true, 38, 28),
-        CLASS_LABEL[c] || c, SATS.filter(s => s.cls === c).length));
+      // No count: the key decodes what a shape means. Counting the drawn sample
+      // here put a second, smaller number beside the real fleet figures below.
+      kc.appendChild(litem(glyph(c, 'var(--dim)', true, 38, 28), CLASS_LABEL[c] || c));
     }
   }
 
@@ -1945,7 +2006,7 @@ function renderLegend(){
       const c = opColor(o);
       sw.style.background = c;
       sw.style.boxShadow = '0 0 9px ' + c + '99';
-      ko.appendChild(litem(sw, o, SATS.filter(s => s.operator === o).length));
+      ko.appendChild(litem(sw, o));
     }
   }
 }
@@ -2031,7 +2092,7 @@ function applyFeed(feed){
   if(isSample) setStatus('sample');
   else setStatus('live', SATS.length + ' operational spacecraft, ' + agePhrase(feed.generated));
 
-  filter='ALL'; renderFilters(); renderLegend(); renderVerification(); computeOdometer(odoFleet); refreshAll();
+  filter='ALL'; renderFilters(); renderLegend(); renderFleet(); renderVerification(); computeOdometer(odoFleet); refreshAll();
 }
 
 function refreshAll(){ drawLive(); computePasses(); }
@@ -2243,7 +2304,7 @@ async function boot(){
      a moment later meant the sky visibly rearranged itself as the page settled.
      Better an empty sky for a beat than a wrong one that jumps. */
   SATS = buildSats(DEMO_TLES);          // fallback only, if the feed cannot load
-  renderFilters(); renderLegend(); renderVerification(); computeOdometer(odoFleet); setStatus('sample');
+  renderFilters(); renderLegend(); renderFleet(); renderVerification(); computeOdometer(odoFleet); setStatus('sample');
   // Reserve the callout row immediately. Pass prediction takes a couple of
   // seconds, and leaving it empty until then made the row appear to be missing
   // and shifted everything below it when it arrived.
