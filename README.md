@@ -30,7 +30,7 @@ says *Go outside*, you have ten minutes.
 **Next passes** lists what is coming over the next twelve hours. Filter by company, or
 tap any row to watch that pass replayed on the dome.
 
-**Sample and All.** By default the dome draws a readable subset — spread across every
+**Explore and All.** By default the dome draws a readable subset — spread across every
 orbital plane so the sky looks like the sky, with room for names and trails. Switch to
 *All* to see the entire Washington-built fleet at once. It becomes a scatter of unlabelled
 dots, which is the point: that is the actual volume.
