@@ -1025,6 +1025,32 @@ function fmtDayIfNeeded(d){
    gives orbits completed and distance flown. Nothing extra is downloaded. */
 const MU_ORB = 398600.4418, RE_ORB = 6378.137;
 
+/* CelesTrak publishes launch sites as five-letter range codes. AFETR is Cape
+   Canaveral and AFWTR is Vandenberg, which nobody outside the industry knows —
+   and the two US ranges cover almost everything in this fleet. Names taken from
+   CelesTrak's own launch-site table; anything unlisted falls back to the code. */
+const LAUNCH_SITE = {
+  AFETR:'Cape Canaveral, Florida',   AFWTR:'Vandenberg, California',
+  ERAS: 'Eastern Range, air launch', WRAS: 'Western Range, air launch',
+  WLPIS:'Wallops Island, Virginia',  KODAK:'Kodiak, Alaska',
+  KWAJ: 'Kwajalein Atoll',           SEAL: 'Sea Launch platform',
+  FRGUI:'Kourou, French Guiana',     RLLB: 'M\u0101hia Peninsula, New Zealand',
+  TYMSC:'Baikonur, Kazakhstan',      PLMSC:'Plesetsk, Russia',
+  VOSTO:'Vostochny, Russia',         KYMSC:'Kapustin Yar, Russia',
+  SRILR:'Satish Dhawan, India',      TANSC:'Tanegashima, Japan',
+  KSCUT:'Uchinoura, Japan',          JSC:  'Jiuquan, China',
+  TAISC:'Taiyuan, China',            SCSLA:'South China Sea',
+  ANDSP:'And\u00F8ya, Norway',        ALCLC:'Alc\u00E2ntara, Brazil',
+  NSC:  'Naro, South Korea',         SEMLS:'Semnan, Iran',
+  SNMLP:'San Marco, Indian Ocean',   HGSTR:'Hammaguira, Algeria',
+  UNK:  'unrecorded'
+};
+
+function siteName(code){
+  if(!code) return null;
+  return LAUNCH_SITE[code.toUpperCase()] || code;
+}
+
 function orbitFacts(s){
   const mm = parseFloat(s.line2.slice(52, 63));
   if(!isFinite(mm) || mm <= 0) return null;
@@ -1068,7 +1094,7 @@ function showDetail(s){
     html += '<div class="dgrp">Since launch</div>' +
       row('Launched', new Date(s.launched).toLocaleDateString('en-US',
             {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'})) +
-      (s.site ? row('From', s.site) : '') +
+      (s.site ? row('From', siteName(s.site)) : '') +
       row('Days up', nfmt(Math.round(days))) +
       row('Orbits', nfmt(Math.round(days * f.mm))) +
       row('Distance', nfmt(Math.round(f.v * days * 86400)) + ' km');
