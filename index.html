@@ -1261,7 +1261,6 @@ let feedApplied = false;   // true once the real feed has been read, however it 
    would be 15 million propagations and would lock the browser. */
 let skyMode = 'sample';
 const EXPLORE_MAX = 10;
-let overheadTotal = 0;   // everything above the horizon fleet-wide, for the readout
 let fullSats = null;      // lazily loaded, cached
 let fullLoading = false;
 let fullQueued = false;
@@ -1635,7 +1634,7 @@ function drawLive(){
       const l = look(s.satrec, now, gmst);
       if(l && l.el >= 0) cand.push({ s, el: l.el });
     }
-    if(cand.length){ shown = pickDiverse(cand, EXPLORE_MAX); overheadTotal = cand.length; }
+    if(cand.length) shown = pickDiverse(cand, EXPLORE_MAX);
   }
 
   const labelQueue = [];
@@ -1736,9 +1735,13 @@ function drawLive(){
      from the sample at a moment the selection was never made for, so quoting the
      live total there would pair two different instants. */
   // Only meaningful in All, where the denominator is the whole fleet.
+  /* Static in Explore. A live denominator needs the whole fleet propagated,
+     which arrives late and then changes every few seconds — a number that turns
+     up after a pause and will not sit still is worse than none. This says the
+     one thing that matters: what you are looking at is not all of it. */
   if(d) d.textContent = dense
     ? nfmt(up) + ' of ' + nfmt(shown.length) + ' above the horizon'
-    : '';
+    : 'A sample of what\u2019s overhead';
 
   placeLabels(labelQueue, moon
     ? {x:moon.x-moon.r-4, y:moon.y-moon.r-4, w:moon.r*2+8, h:moon.r*2+24}
