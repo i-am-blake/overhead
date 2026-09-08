@@ -1534,6 +1534,37 @@ function drawCraft(layer, x, y, headingDeg, tint, lit, elev, cls, spin){
    stacking on top of each other. Highest objects get first choice of position,
    then each one takes the first slot that is clear and still on the canvas.
    Anything with nowhere to go is dropped rather than drawn illegibly. */
+/* Measure the text rather than estimate it. Character-count arithmetic has been
+   wrong twice — once when the font size changed under it, once when the advance
+   width was guessed low — and both times the name spilled out of its box. The
+   browser already knows the answer.
+
+   Results are cached by name, and the cache is dropped when the font size
+   changes, so this costs one layout per new name rather than one per frame. */
+let measureNode = null, measureCache = new Map(), measureAt = '';
+
+function labelWidth(name){
+  const svg = $('#dome');
+  if(!svg) return name.length * 7.9;
+  if(!measureNode){
+    measureNode = el('text', { class:'satlabel', x:-9999, y:-9999,
+                               'aria-hidden':'true', visibility:'hidden' });
+    svg.appendChild(measureNode);
+  }
+  let fs = '';
+  try { fs = getComputedStyle(measureNode).fontSize || ''; } catch(e) {}
+  if(fs !== measureAt){ measureCache.clear(); measureAt = fs; }
+  if(measureCache.has(name)) return measureCache.get(name);
+
+  measureNode.textContent = name;
+  let w = 0;
+  try { w = measureNode.getComputedTextLength(); } catch(e) {}
+  // Before webfonts settle this can return 0; fall back rather than draw a sliver.
+  if(!(w > 0)) return name.length * 7.9;
+  measureCache.set(name, w);
+  return w;
+}
+
 function placeLabels(queue, reserved){
   const placed = reserved ? [reserved] : [];
   const hits = b => b.x < VB.x+2 || b.y < VB.y+2 ||
@@ -1543,9 +1574,7 @@ function placeLabels(queue, reserved){
   queue.sort((a,b) => b.el - a.el);
 
   for(const it of queue){
-    // Sized for --fs-3. At the old 5.3 the box was narrower than its own text,
-    // so labels overlapped before the collision test ever saw them touch.
-    const w = it.name.length*6.4 + 15, hh = 17;
+    const w = labelWidth(it.name) + 24, hh = 22;   // 12px padding each side
     /* Try progressively further out rather than dropping the label. With ten
        objects and larger text, six slots ran out too easily and names vanished. */
     const slots = [
@@ -1577,12 +1606,13 @@ function placeLabels(queue, reserved){
       }));
     }
     liveLayer.appendChild(el('rect',{
-      x:slot.x.toFixed(1), y:slot.y.toFixed(1), width:w.toFixed(1), height:hh, rx:7.5,
+      x:slot.x.toFixed(1), y:slot.y.toFixed(1), width:w.toFixed(1), height:hh, rx:6,
       fill:'var(--deep)', stroke: it.lit ? it.tint : 'var(--rule)',
       'stroke-width': it.lit ? 1.5 : 1, opacity: it.lit ? .96 : .8
     }));
     liveLayer.appendChild(el('text',{
-      x:(slot.x+w/2).toFixed(1), y:(slot.y+10.5).toFixed(1), 'text-anchor':'middle',
+      x:(slot.x+w/2).toFixed(1), y:(slot.y+hh/2).toFixed(1),
+      'text-anchor':'middle', 'dominant-baseline':'central',
       class:'satlabel'+(it.lit?' vis':''),
       style: it.lit ? ('fill:'+it.tint) : 'fill:var(--dim)'
     }, it.name));
