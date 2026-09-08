@@ -193,7 +193,12 @@ h1{
 .detail .dk{font-size:var(--fs-3);color:var(--dim)}
 .detail .dv{font-size:var(--fs-3);color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
 .detail .dv.lit{color:var(--sodium)}
-@media (max-width:700px){ .detail{position:static;width:auto;margin:12px 0 0} }
+@media (max-width:700px){
+  /* relative, not static: the close button is absolutely positioned, and with a
+     static parent it anchored to the dome shell instead and floated out of the
+     card entirely. */
+  .detail{position:relative;width:auto;margin:10px 0 0}
+}
 .dome-shell{
   position:relative;
   margin-top:clamp(16px, 2.6vh, 30px);
