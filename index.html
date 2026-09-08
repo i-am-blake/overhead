@@ -166,6 +166,34 @@ h1{
 .chip[aria-pressed="true"] i{box-shadow:none!important;outline:1px solid rgba(4,7,12,.5)}
 
 /* ---------- dome ---------- */
+.detail{
+  position:absolute;top:12px;right:14px;z-index:6;width:min(298px,calc(100% - 28px));
+  background:linear-gradient(150deg,#14212E 0%,var(--deeper) 72%);
+  border:1px solid var(--rule);padding:14px 15px 13px;
+}
+.detail[hidden]{display:none}
+.detail .dclose{
+  position:absolute;top:7px;right:9px;width:22px;height:22px;
+  background:none;border:0;color:var(--dimmer);cursor:pointer;font-size:16px;line-height:1;
+}
+.detail .dclose:hover{color:var(--ice)}
+.detail h4{
+  font-family:var(--display);font-size:var(--fs-5);font-weight:600;letter-spacing:var(--ls-1);
+  color:var(--ink);margin:0 0 2px;padding-right:22px;line-height:1.15;
+}
+.detail .dsub{
+  font-size:var(--fs-1);letter-spacing:var(--ls-2);text-transform:uppercase;
+  color:var(--sodium);margin-bottom:10px;
+}
+.detail .dgrp{
+  font-size:var(--fs-1);letter-spacing:var(--ls-4);text-transform:uppercase;
+  color:var(--dimmer);margin:11px 0 5px;
+}
+.detail .drow{display:flex;justify-content:space-between;gap:10px;margin-bottom:3px}
+.detail .dk{font-size:var(--fs-3);color:var(--dim)}
+.detail .dv{font-size:var(--fs-3);color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+.detail .dv.lit{color:var(--sodium)}
+@media (max-width:700px){ .detail{position:static;width:auto;margin:12px 0 0} }
 .dome-shell{
   position:relative;
   margin-top:clamp(16px, 2.6vh, 30px);
@@ -272,7 +300,7 @@ input[type=range]:focus-visible{outline:2px solid var(--sodium);outline-offset:4
 
 .terrain{pointer-events:none}
 .terrainlabel{
-  font-size:var(--fs-1);fill:var(--ice);font-family:var(--mono);letter-spacing:var(--ls-4);opacity:.85;
+  font-size:var(--fs-2);fill:var(--ice);font-family:var(--mono);letter-spacing:var(--ls-4);opacity:1;
 }
 .moonlabel{
   font-size:var(--fs-1);fill:var(--ice);font-family:var(--mono);letter-spacing:var(--ls-3);opacity:.75;
@@ -632,6 +660,7 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
 
   <section class="dome-shell" aria-label="Sky view from Seattle">
     <div class="odo" id="odo" aria-live="off"></div>
+    <div class="detail" id="detail" role="dialog" aria-label="Spacecraft detail" hidden></div>
     <svg class="dome" id="dome" viewBox="36 14 488 470" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="domedesc"></svg>
     <p id="domedesc" class="sr">A polar plot of the sky. The outer ring is the horizon, the center is straight up. Satellite positions are listed in the pass table below.</p>
     <div class="domeclock"><span class="wallclock" id="wallclock" aria-live="off"></span></div>
@@ -966,6 +995,71 @@ function fmtDayIfNeeded(d){
   if(today === that) return '';
   return ' ' + d.toLocaleDateString('en-US',{weekday:'short',timeZone:'America/Los_Angeles'});
 }
+/* ---------- spacecraft detail ----------
+   Everything shown comes from data already fetched. The two element lines give
+   altitude, speed, period and inclination; pairing those with the launch date
+   gives orbits completed and distance flown. Nothing extra is downloaded. */
+const MU_ORB = 398600.4418, RE_ORB = 6378.137;
+
+function orbitFacts(s){
+  const mm = parseFloat(s.line2.slice(52, 63));
+  if(!isFinite(mm) || mm <= 0) return null;
+  const nrad = mm * 2 * Math.PI / 86400;
+  const a = Math.cbrt(MU_ORB / (nrad * nrad));
+  return { mm, alt:a - RE_ORB, v:Math.sqrt(MU_ORB / a),
+           periodMin:2 * Math.PI / nrad / 60, incl:parseFloat(s.line2.slice(8, 16)) };
+}
+
+function showDetail(s){
+  const box = $('#detail');
+  if(!box || !s) return;
+  const when = simNow(), gmst = SGP.gstime(when);
+  const f = orbitFacts(s);
+  const l = look(s.satrec, when, gmst);
+  const lit = l && sunElevation(when, gmst) < -6 && sunlit(l.eci, sunEci(when));
+  const days = s.launched ? (Date.now() - Date.parse(s.launched)) / 86400000 : null;
+
+  const row = (k, v, cls) => '<div class="drow"><span class="dk">' + k +
+    '</span><span class="dv' + (cls || '') + '">' + v + '</span></div>';
+
+  let html = '<button class="dclose" aria-label="Close">&times;</button>' +
+    '<h4>' + s.name + '</h4>' +
+    '<div class="dsub">' + s.operator + (s.built ? ' \u00B7 ' + s.built : '') + '</div>';
+
+  if(l && l.el >= 0){
+    html += '<div class="dgrp">Right now</div>' +
+      row('Elevation', Math.round(l.el) + '&deg;') +
+      row('Direction', compass(l.az)) +
+      row('Range', nfmt(Math.round(l.range)) + ' km') +
+      row('Sunlit', lit ? 'yes' : 'in shadow', lit ? ' lit' : '');
+  }
+  if(f){
+    html += '<div class="dgrp">Orbit</div>' +
+      row('Altitude', Math.round(f.alt) + ' km') +
+      row('Speed', f.v.toFixed(2) + ' km/s') +
+      row('Period', f.periodMin.toFixed(1) + ' min') +
+      row('Inclination', f.incl.toFixed(1) + '&deg;');
+  }
+  if(days != null && isFinite(days) && days > 0 && f){
+    html += '<div class="dgrp">Since launch</div>' +
+      row('Launched', new Date(s.launched).toLocaleDateString('en-US',
+            {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'})) +
+      (s.site ? row('From', s.site) : '') +
+      row('Days up', nfmt(Math.round(days))) +
+      row('Orbits', nfmt(Math.round(days * f.mm))) +
+      row('Distance', nfmt(Math.round(f.v * days * 86400)) + ' km');
+  }
+
+  box.innerHTML = html;
+  box.hidden = false;
+  box.querySelector('.dclose').onclick = hideDetail;
+}
+
+function hideDetail(){
+  const box = $('#detail');
+  if(box){ box.hidden = true; box.innerHTML = ''; }
+}
+
 function compass(azDeg){
   const pts=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
   return pts[Math.round(((azDeg%360)+360)%360/22.5)%16];
@@ -1742,6 +1836,14 @@ function drawLive(){
 
     const spin = s.cls === 'rocketbody' ? (now.getTime()/24 + (s.phase||0)*57) % 360 : 0;
     drawCraft(liveLayer, x, y, head, tint, lit, l.el, s.cls, spin);
+    /* A transparent disc over each craft. The glyphs are a few pixels of actual
+       ink, which is not a target anyone can reliably hit. */
+    const hit = el('circle', { cx:x.toFixed(1), cy:y.toFixed(1), r:16,
+      fill:'transparent', style:'cursor:pointer', tabindex:'0',
+      role:'button', 'aria-label':s.name });
+    hit.onclick = ev => { ev.stopPropagation(); showDetail(s); };
+    hit.onkeydown = ev => { if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); showDetail(s); } };
+    liveLayer.appendChild(hit);
     // Every craft carries its name for the whole time it is up. Queued rather
     // than drawn here so the plates can be laid out together and land on top.
     if(!dense && l.el >= MIN_EL) labelQueue.push({x, y, name:s.name, lit, tint, el:l.el});

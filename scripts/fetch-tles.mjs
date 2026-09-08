@@ -293,6 +293,7 @@ console.log(`${sixDigit} with 6-digit catalog numbers` +
    "distance flown" figure, which is derived rather than claimed. */
 const launched = new Map();
 const objType = new Map();
+const extras = new Map();   // launch site, radar cross-section, apogee/perigee
 let catalogStats = null;
 try {
   const u = new URL(SATCAT);
@@ -303,6 +304,12 @@ try {
   const iId = head.indexOf('NORAD_CAT_ID');
   const iLd = head.indexOf('LAUNCH_DATE');
   const iOt = head.indexOf('OBJECT_TYPE');
+  /* Already in the response we download; there is no cost to keeping them. */
+  const iSite = head.indexOf('LAUNCH_SITE');
+  const iRcs  = head.indexOf('RCS');
+  const iPer  = head.indexOf('PERIOD');
+  const iApo  = head.indexOf('APOGEE');
+  const iPeri = head.indexOf('PERIGEE');
   if (iId < 0 || iLd < 0) throw new Error('unexpected SATCAT columns: ' + head.slice(0, 8));
   for (const line of rows.slice(1)) {
     const c = line.split(',');
@@ -310,6 +317,12 @@ try {
     if (!Number.isFinite(id)) continue;
     if (c[iLd]) launched.set(id, c[iLd].trim());
     if (iOt >= 0 && c[iOt]) objType.set(id, c[iOt].trim());
+    const ex = {};
+    if (iSite >= 0 && c[iSite]) ex.site = c[iSite].trim();
+    if (iRcs  >= 0 && c[iRcs])  ex.rcs  = c[iRcs].trim();
+    if (iApo  >= 0 && c[iApo])  ex.apo  = c[iApo].trim();
+    if (iPeri >= 0 && c[iPeri]) ex.per  = c[iPeri].trim();
+    if (Object.keys(ex).length) extras.set(id, ex);
   }
   console.log(`${launched.size} launch dates from SATCAT`);
 
@@ -369,6 +382,7 @@ for (const src of roster.sources) {
     norad: o.norad,
     launched: launched.get(o.norad) || null,
     objectType: objType.get(o.norad) || null,
+    ...(extras.get(o.norad) || {}),
     line1: o.line1, line2: o.line2
   })));
 
