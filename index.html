@@ -263,8 +263,14 @@ svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 340px), 900px
 /* A segmented pair, sharing one border, sitting in the transport row rather than
    taking a row of its own. The counts do the explaining, so no caption is needed. */
 .drawn{
+  /* Shrinks and truncates instead of forcing a wrap. It starts empty and fills
+     after the first draw, so a fixed-width readout made the row reflow a beat
+     after load — the toggle dropped to its own half-width line and then jumped
+     back up. */
+  flex:1 1 auto;min-width:0;text-align:right;
   font-size:var(--fs-1);letter-spacing:var(--ls-2);color:var(--dimmer);
-  white-space:nowrap;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-variant-numeric:tabular-nums;
 }
 .skymode{
   display:inline-flex;flex:0 0 auto;border:1px solid var(--rule);
@@ -279,10 +285,13 @@ svg.dome{display:block;width:100%;height:clamp(270px, calc(100vh - 340px), 900px
 .skymode button:hover{color:var(--ice)}
 .skymode button[aria-pressed="true"]{background:var(--ice);color:var(--void)}
 .skymode button:focus-visible{outline:2px solid var(--sodium);outline-offset:-2px}
-@media (max-width:620px){
+@media (max-width:760px){
+  /* Below this the row cannot hold everything on one line, so the toggle takes a
+     line of its own and spans it. Half a row looked like a mistake. */
   .skymode{order:3;width:100%;justify-content:stretch}
   .skymode button{flex:1;padding:9px 8px}
   .tlabel{min-width:0}
+  .drawn{flex:1 1 100%;text-align:left;order:2}
 }
 /* The transport and the callout sit directly on top of each other, so they share
    a height. 46px is set by the callout's content — a 24px button in 11px padding
@@ -695,7 +704,7 @@ footer #unverified{display:block;margin-top:7px;color:var(--sodium)}
       <span class="drawn" id="drawn"></span>
       <span class="skymode" role="group" aria-label="How much of the fleet to draw">
         <button id="modesample" aria-pressed="true" title="A readable selection of what is overhead now, with names and trails">Explore</button>
-        <button id="modeall" aria-pressed="false" title="Every Washington-built satellite on orbit, drawn as plain dots">All</button>
+        <button id="modeall" aria-pressed="false" title="Every Washington-built satellite on orbit, drawn as plain dots">View all</button>
       </span>
     </div>
     <div id="callout"></div>
@@ -2319,7 +2328,7 @@ function setSkyMode(mode){
   b.setAttribute('aria-pressed', String(mode === 'all'));
   /* The readout beside these already gives the counts, so the labels stay short. */
   a.textContent = 'Explore';
-  b.textContent = 'All';
+  b.textContent = 'View all';
   renderFilters(); drawLive();
 }
 $('#modesample').onclick = ()=> setSkyMode('sample');
