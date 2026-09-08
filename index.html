@@ -289,7 +289,14 @@ input[type=range]:focus-visible{outline:2px solid var(--sodium);outline-offset:4
   letter-spacing:var(--ls-4);text-transform:uppercase;color:var(--dimmer);
   padding-bottom:7px;border-bottom:1px solid var(--rule-soft);
 }
+/* Each group is already a column of the legend grid, so wrapping inside one
+   produced sub-columns — two ragged columns of operators where one was meant.
+   Single file from the desktop breakpoint up; below it, horizontal space is
+   scarce enough that wrapping earns its keep. */
 .litems{display:flex;flex-wrap:wrap;gap:9px 16px}
+@media (min-width:900px){
+  .litems{flex-direction:column;flex-wrap:nowrap;gap:9px}
+}
 .litem{
   display:flex;align-items:center;gap:8px;
   /* same scale as the callout row above, so the key reads as part of it */
