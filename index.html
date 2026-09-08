@@ -170,20 +170,28 @@ h1{
   position:absolute;top:12px;right:14px;z-index:6;width:min(298px,calc(100% - 28px));
   background:linear-gradient(150deg,#14212E 0%,var(--deeper) 72%);
   border:1px solid var(--rule);padding:14px 15px 13px;
+  box-shadow:0 10px 34px rgba(2,5,9,.7);
 }
 .detail[hidden]{display:none}
 .detail .dclose{
-  position:absolute;top:7px;right:9px;width:22px;height:22px;
-  background:none;border:0;color:var(--dimmer);cursor:pointer;font-size:16px;line-height:1;
+  /* 40px, the smallest target that is reliably tappable. At 22px it was smaller
+     than a fingertip and sat right beside the card edge. */
+  position:absolute;top:6px;right:6px;width:40px;height:40px;
+  display:grid;place-items:center;
+  background:none;border:0;color:var(--dim);cursor:pointer;
+  font-size:24px;line-height:1;transition:.15s;
 }
 .detail .dclose:hover{color:var(--ice)}
+.detail .dclose:focus-visible{outline:2px solid var(--sodium);outline-offset:-4px}
+.detail h4{padding-right:44px}
 .detail h4{
   font-family:var(--display);font-size:var(--fs-5);font-weight:600;letter-spacing:var(--ls-1);
-  color:var(--ink);margin:0 0 2px;padding-right:22px;line-height:1.15;
+  color:var(--ink);margin:0 0 2px;padding-right:26px;line-height:1.15;
 }
 .detail .dsub{
   font-size:var(--fs-1);letter-spacing:var(--ls-2);text-transform:uppercase;
-  color:var(--sodium);margin-bottom:10px;
+  color:var(--sodium);padding-bottom:11px;margin-bottom:2px;
+  border-bottom:1px solid var(--rule);
 }
 .detail .dgrp{
   font-size:var(--fs-1);letter-spacing:var(--ls-4);text-transform:uppercase;
@@ -194,10 +202,21 @@ h1{
 .detail .dv{font-size:var(--fs-3);color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
 .detail .dv.lit{color:var(--sodium)}
 @media (max-width:700px){
-  /* relative, not static: the close button is absolutely positioned, and with a
-     static parent it anchored to the dome shell instead and floated out of the
-     card entirely. */
-  .detail{position:relative;width:auto;margin:10px 0 0}
+  /* A true modal: fixed to the viewport and centred on both axes, so it lands in
+     the middle of the screen wherever the page happens to be scrolled. Anchoring
+     it to the dome put it wherever the dome was, which on a long page is often
+     off-screen. */
+  .detail{
+    position:fixed;top:50%;left:50%;right:auto;
+    transform:translate(-50%,-50%);
+    width:min(330px, calc(100vw - 32px));
+    max-height:calc(100vh - 48px);overflow-y:auto;
+    margin:0;z-index:40;
+    box-shadow:0 18px 56px rgba(2,5,9,.78);
+  }
+  .detail::before{
+    content:'';position:fixed;inset:0;z-index:-1;background:rgba(4,7,12,.62);
+  }
 }
 .dome-shell{
   position:relative;
@@ -1058,6 +1077,9 @@ function showDetail(s){
   box.innerHTML = html;
   box.hidden = false;
   box.querySelector('.dclose').onclick = hideDetail;
+  // tapping the sky behind the card dismisses it, as an overlay should
+  const svg = $('#dome');
+  if(svg) svg.onclick = hideDetail;
 }
 
 function hideDetail(){
