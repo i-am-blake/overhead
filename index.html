@@ -2339,7 +2339,10 @@ function renderFilters(){
   const upcoming = passes.filter(p => p.peak > now);
   const ready = passes.length > 0;
 
-  [['ALL','All payloads'], ...ops.map(o=>[o,o]), ...extra.map(o=>[o,o])].forEach(([val,lbl])=>{
+  /* Just "All". The operator chips beside it supply the context, and anything
+     longer either repeats the sky toggle's "View all" or reaches for "payloads",
+     which is the catalog's word rather than a visitor's. */
+  [['ALL','All'], ...ops.map(o=>[o,o]), ...extra.map(o=>[o,o])].forEach(([val,lbl])=>{
     const n = val==='ALL' ? upcoming.length
                           : upcoming.filter(p => p.sat.operator===val).length;
     const b = document.createElement('button');
