@@ -1033,6 +1033,10 @@ function fmtDayIfNeeded(d){
    altitude, speed, period and inclination; pairing those with the launch date
    gives orbits completed and distance flown. Nothing extra is downloaded. */
 const MU_ORB = 398600.4418, RE_ORB = 6378.137;
+/* The name, not the node: hit targets are rebuilt on every redraw, so the
+   element that opened the card no longer exists a second later. Look up the
+   current one by name on close instead. */
+let detailOpener = null;
 
 /* CelesTrak publishes launch sites as five-letter range codes. AFETR is Cape
    Canaveral and AFWTR is Vandenberg, which nobody outside the industry knows —
@@ -1111,7 +1115,28 @@ function showDetail(s){
 
   box.innerHTML = html;
   box.hidden = false;
-  box.querySelector('.dclose').onclick = hideDetail;
+  const closeBtn = box.querySelector('.dclose');
+  closeBtn.onclick = hideDetail;
+
+  /* Remember what opened this so focus can go back there on close. Returning to
+     the top of the page instead would lose a keyboard user's place entirely. */
+  const active = document.activeElement;
+  detailOpener = (active && active.getAttribute)
+    ? active.getAttribute('data-sat') || null : null;
+  box.setAttribute('aria-modal', 'true');
+  closeBtn.focus();
+
+  /* Keep Tab inside the card while it is open. Without this you tab straight out
+     onto the satellites and controls behind — which on mobile sit under the
+     scrim, so you end up operating things you cannot see. */
+  box.onkeydown = e => {
+    if(e.key !== 'Tab') return;
+    const stops = box.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])');
+    if(!stops.length) return;
+    const first = stops[0], last = stops[stops.length - 1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  };
   // tapping the sky behind the card dismisses it, as an overlay should
   const svg = $('#dome');
   if(svg) svg.onclick = hideDetail;
@@ -1119,7 +1144,18 @@ function showDetail(s){
 
 function hideDetail(){
   const box = $('#detail');
-  if(box){ box.hidden = true; box.innerHTML = ''; }
+  if(box){
+    box.hidden = true;
+    box.innerHTML = '';
+    box.onkeydown = null;
+    box.removeAttribute('aria-modal');
+  }
+  // back to the spacecraft that was activated, not the top of the document
+  if(detailOpener){
+    const back = document.querySelector('[data-sat="' + CSS.escape(detailOpener) + '"]');
+    if(back) try { back.focus(); } catch(e) {}
+  }
+  detailOpener = null;
 }
 
 function compass(azDeg){
@@ -1902,7 +1938,7 @@ function drawLive(){
        ink, which is not a target anyone can reliably hit. */
     const hit = el('circle', { cx:x.toFixed(1), cy:y.toFixed(1), r:16,
       fill:'transparent', style:'cursor:pointer', tabindex:'0',
-      role:'button', 'aria-label':s.name });
+      role:'button', 'aria-label':s.name, 'data-sat':s.name });
     hit.onclick = ev => { ev.stopPropagation(); showDetail(s); };
     hit.onkeydown = ev => { if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); showDetail(s); } };
     liveLayer.appendChild(hit);
