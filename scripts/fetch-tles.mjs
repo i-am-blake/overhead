@@ -370,6 +370,7 @@ for (const src of roster.sources) {
   hits = hits.filter(o => validTle(o.line1, o.line2) && !seen.has(o.norad));
   const stale = hits.filter(o => epochAgeDays(o.line1) > 14).length;
   fleetAll.push(...hits.map(o => ({
+    norad: o.norad,                       // needed to look up the launch site
     name: o.name, line1: o.line1, line2: o.line2, launched: launched.get(o.norad) || null,
     operator: src.operator, cls: src.class ?? 'sat', built: src.built || '' })));
   hits = sample(hits, src.limit ?? 25);
@@ -440,6 +441,7 @@ if (previous && !previous.demo && collected.length < previous.objects.length * 0
 
 await fs.mkdir(path.dirname(OUT), { recursive: true });
 const fleet = fleetTotals(fleetAll);
+
 if (catalogStats) {
   fleet.catalogPayloads = catalogStats.payloads;
   fleet.catalogTotal = catalogStats.total;

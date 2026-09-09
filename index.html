@@ -166,11 +166,19 @@ h1{
 .chip[aria-pressed="true"] i{box-shadow:none!important;outline:1px solid rgba(4,7,12,.5)}
 
 /* ---------- dome ---------- */
+/* Fixed to the viewport at every size, not anchored to the dome. Anchored, it
+   opened off-screen whenever it was triggered from the pass table, and bringing
+   it into view meant scrolling the reader away from what they had clicked. */
 .detail{
-  position:absolute;top:12px;right:14px;z-index:6;width:min(298px,calc(100% - 28px));
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:40;width:min(330px, calc(100vw - 32px));
+  max-height:calc(100vh - 48px);overflow-y:auto;
   background:linear-gradient(150deg,#14212E 0%,var(--deeper) 72%);
   border:1px solid var(--rule);padding:14px 15px 13px;
-  box-shadow:0 10px 34px rgba(2,5,9,.7);
+  box-shadow:0 18px 56px rgba(2,5,9,.78);
+}
+.detail::before{
+  content:'';position:fixed;inset:0;z-index:-1;background:rgba(4,7,12,.62);
 }
 .detail[hidden]{display:none}
 .detail .dclose{
@@ -201,23 +209,11 @@ h1{
 .detail .dk{font-size:var(--fs-3);color:var(--dim)}
 .detail .dv{font-size:var(--fs-3);color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
 .detail .dv.lit{color:var(--sodium)}
-@media (max-width:700px){
-  /* A true modal: fixed to the viewport and centred on both axes, so it lands in
-     the middle of the screen wherever the page happens to be scrolled. Anchoring
-     it to the dome put it wherever the dome was, which on a long page is often
-     off-screen. */
-  .detail{
-    position:fixed;top:50%;left:50%;right:auto;
-    transform:translate(-50%,-50%);
-    width:min(330px, calc(100vw - 32px));
-    max-height:calc(100vh - 48px);overflow-y:auto;
-    margin:0;z-index:40;
-    box-shadow:0 18px 56px rgba(2,5,9,.78);
-  }
-  .detail::before{
-    content:'';position:fixed;inset:0;z-index:-1;background:rgba(4,7,12,.62);
-  }
+.detail .dwatch{
+  width:100%;margin-top:14px;justify-content:center;
+  border-color:var(--sodium);color:var(--sodium);
 }
+.detail .dwatch:hover{background:var(--sodium);color:var(--void)}
 .dome-shell{
   position:relative;
   margin-top:clamp(16px, 2.6vh, 30px);
@@ -474,6 +470,20 @@ td.num{font-variant-numeric:tabular-nums;color:var(--dim);white-space:nowrap}
 .arc span{position:absolute;left:0;top:0;bottom:0;background:var(--ice)}
 tr.vis .arc span{background:var(--sodium)}
 
+/* The expanded detail beneath a pass row. */
+tbody tr.open{background:rgba(34,224,255,.06)}
+tbody tr.expand{cursor:default}
+tbody tr.expand:hover{background:none}
+tbody tr.expand > td{
+  padding:4px 8px 18px;border-top:0;
+  background:rgba(34,224,255,.04);
+}
+.xtext{
+  font-size:var(--fs-4);line-height:1.7;color:var(--dim);
+  max-width:74ch;margin:2px 0 13px;letter-spacing:var(--ls-1);
+}
+.dwatch{border-color:var(--sodium);color:var(--sodium)}
+.dwatch:hover{background:var(--sodium);color:var(--void)}
 .capnote td{
   color:var(--dimmer);font-size:var(--fs-1);letter-spacing:var(--ls-2);
   text-transform:uppercase;padding:14px 8px;text-align:center;
@@ -1006,6 +1016,7 @@ let passesComputedAt = 0;   // when the window was predicted from
 const PASS_PREVIEW = 5;      // rows visible at rest, and the size of each reveal
 const PASS_RENDER_CAP = 40;  // hard render limit — a drawing cap, NOT a count
 let passesShown = PASS_PREVIEW;
+let expandedPass = null;   // norad:peak of the row showing its detail
 
 const MIN_EL = 10;        // degrees — below this a pass isn't worth walking outside for
 const HORIZON_H = 12;     // hours of look-ahead
@@ -1073,7 +1084,48 @@ function orbitFacts(s){
            periodMin:2 * Math.PI / nrad / 60, incl:parseFloat(s.line2.slice(8, 16)) };
 }
 
-function showDetail(s){
+/* Two sentences, not a table. A row of figures makes a reader work to find the
+   interesting part; a sentence hands it over. Everything in them is computed —
+   orbits completed, distance, speed, whether it will be sunlit — so the prose is
+   as sourced as the numbers were. */
+function passDetailHtml(p){
+  const s = p.sat, f = orbitFacts(s);
+  const days = s.launched ? (Date.now() - Date.parse(s.launched)) / 86400000 : null;
+  const mins = Math.max(1, Math.round((p.end - p.start) / 60000));
+
+  // Sentence one: where it came from, and what it has done since.
+  let one;
+  const where = s.built ? 'Built in ' + s.built.replace(/, WA$/, '') : 'Built in Washington';
+  if(s.launched && days > 0 && f){
+    const when = new Date(s.launched).toLocaleDateString('en-US',
+      {month:'long', year:'numeric', timeZone:'UTC'});
+    const from = s.site ? ' and launched from ' + siteName(s.site).replace(/,.*$/, '') : ' and launched';
+    one = where + from + ' in ' + when + ', it has circled the Earth ' +
+          nfmt(Math.round(days * f.mm)) + ' times since \u2014 about ' +
+          nfmt(Math.round(f.v * days * 86400 / 1e6)) + ' million kilometres.';
+  }else{
+    one = where + ' by ' + s.operator + '.';
+  }
+
+  // Sentence two: what happens on this pass, and whether it is worth going out.
+  let two;
+  const high = Math.round(p.el), dir = compass(p.az);
+  const speed = f ? f.v.toFixed(1) : null;
+  const alt = f ? Math.round(f.alt) : null;
+  const base = 'It crosses ' + dir + ' at ' + high + '\u00B0' +
+               (alt ? ', ' + nfmt(alt) + ' km up' : '') +
+               (speed ? ' and moving at ' + speed + ' km per second' : '') +
+               ', which is why the whole pass takes only ' + mins +
+               (mins === 1 ? ' minute' : ' minutes');
+  two = p.visible
+    ? base + ' \u2014 and it will be catching sunlight, so you could pick it out by eye.'
+    : base + ', though it stays in the Earth\u2019s shadow and will not be visible.';
+
+  return '<p class="xtext">' + one + ' ' + two + '</p>' +
+    '<button class="chip dwatch" type="button">Watch it cross &#9654;</button>';
+}
+
+function showDetail(s, pass){
   const box = $('#detail');
   if(!box || !s) return;
   const when = simNow(), gmst = SGP.gstime(when);
@@ -1088,6 +1140,15 @@ function showDetail(s){
   let html = '<button class="dclose" aria-label="Close">&times;</button>' +
     '<h4>' + s.name + '</h4>' +
     '<div class="dsub">' + s.operator + (s.built ? ' \u00B7 ' + s.built : '') + '</div>';
+
+  if(pass){
+    html += '<div class="dgrp">This pass</div>' +
+      row('Peak', fmtTime(pass.peak) + fmtDayIfNeeded(pass.peak)) +
+      row('Direction', compass(pass.az)) +
+      row('Highest', Math.round(pass.el) + '&deg;') +
+      row('Above for', Math.round((pass.end - pass.start)/60000) + ' min') +
+      row('Visible', pass.visible ? 'yes' : 'in shadow', pass.visible ? ' lit' : '');
+  }
 
   if(l && l.el >= 0){
     html += '<div class="dgrp">Right now</div>' +
@@ -1113,8 +1174,21 @@ function showDetail(s){
       row('Distance', nfmt(Math.round(f.v * days * 86400)) + ' km');
   }
 
+  if(pass){
+    html += '<button class="chip dwatch" type="button">Watch it cross &#9654;</button>';
+  }
+
   box.innerHTML = html;
   box.hidden = false;
+
+  const watch = box.querySelector('.dwatch');
+  if(watch) watch.onclick = () => {
+    hideDetail();
+    // the dome is what the preview happens on, so make sure it is in view
+    const shell = document.querySelector('.dome-shell');
+    if(shell) shell.scrollIntoView({behavior:'smooth', block:'center'});
+    previewPass(pass.peak.getTime());
+  };
   const closeBtn = box.querySelector('.dclose');
   closeBtn.onclick = hideDetail;
 
@@ -1124,7 +1198,10 @@ function showDetail(s){
   detailOpener = (active && active.getAttribute)
     ? active.getAttribute('data-sat') || null : null;
   box.setAttribute('aria-modal', 'true');
-  closeBtn.focus();
+  /* preventScroll matters: focusing an element scrolls it into view, and the
+     card sits above the pass table — so opening one from a row yanked the page
+     up to the dome. */
+  closeBtn.focus({ preventScroll: true });
 
   /* Keep Tab inside the card while it is open. Without this you tab straight out
      onto the satellites and controls behind — which on mobile sit under the
@@ -2062,9 +2139,19 @@ function renderPasses(){
     const tr = document.createElement('tr');
     if(p.visible) tr.className = 'vis';
     tr.tabIndex = 0;
-    tr.title = 'Watch this pass on the dome';
-    tr.onclick = ()=> previewPass(p.peak.getTime());
-    tr.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); previewPass(p.peak.getTime()); } };
+    tr.title = 'Show details for this pass';
+    /* The row opens downward instead of raising a card. A card over the dome is
+       off-screen while you are reading the table, and scrolling to it takes you
+       away from the row you just clicked. Expanding in place keeps the list, the
+       row and its detail all in view. */
+    const key = p.sat.norad + ':' + p.peak.getTime();
+    tr.setAttribute('aria-expanded', String(expandedPass === key));
+    const toggle = () => {
+      expandedPass = (expandedPass === key) ? null : key;
+      renderPasses();
+    };
+    tr.onclick = toggle;
+    tr.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } };
     const dur = Math.round((p.end - p.start)/60000);
     tr.innerHTML =
       '<td class="t">' + fmtTime(p.peak) + fmtDayIfNeeded(p.peak) +
@@ -2076,6 +2163,24 @@ function renderPasses(){
       '<td class="num">' + compass(p.az) + '</td>' +
       '<td class="num">' + dur + ' min</td>';
     tb.appendChild(tr);
+
+    if(expandedPass === key){
+      tr.classList.add('open');
+      const ex = document.createElement('tr');
+      ex.className = 'expand';
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.innerHTML = passDetailHtml(p);
+      ex.appendChild(td);
+      tb.appendChild(ex);
+      const w = td.querySelector('.dwatch');
+      if(w) w.onclick = e => {
+        e.stopPropagation();
+        const shell = document.querySelector('.dome-shell');
+        if(shell) shell.scrollIntoView({behavior:'smooth', block:'center'});
+        previewPass(p.peak.getTime());
+      };
+    }
   }
   if(passesShown >= PASS_RENDER_CAP && all.length > PASS_RENDER_CAP){
     const tr = document.createElement('tr');
@@ -2083,6 +2188,24 @@ function renderPasses(){
     tr.innerHTML = '<td colspan="5">Showing the first ' + PASS_RENDER_CAP +
       ' of ' + all.length + '. Filter by operator to narrow the list.</td>';
     tb.appendChild(tr);
+
+    if(expandedPass === key){
+      tr.classList.add('open');
+      const ex = document.createElement('tr');
+      ex.className = 'expand';
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.innerHTML = passDetailHtml(p);
+      ex.appendChild(td);
+      tb.appendChild(ex);
+      const w = td.querySelector('.dwatch');
+      if(w) w.onclick = e => {
+        e.stopPropagation();
+        const shell = document.querySelector('.dome-shell');
+        if(shell) shell.scrollIntoView({behavior:'smooth', block:'center'});
+        previewPass(p.peak.getTime());
+      };
+    }
   }
 
   if(!all.length){
