@@ -474,12 +474,16 @@ await fs.writeFile(OUT_FULL, JSON.stringify({
   generated: fleet.asOf,
   note: 'Every matched object, unsampled. Loaded only when the full-sky view is selected.',
   count: fleetAll.length,
-  /* Grouped by operator so the operator, class and build site are written once
-     each rather than 10,884 times. Names are included because Explore draws from
-     this file and needs labels, not just positions. */
+  /* Grouped by operator so the operator and class are written once each rather
+     than 10,884 times.
+
+     Names and build sites are deliberately NOT included. This file feeds the All
+     view only, which draws bare dots — nothing is labelled and nothing is
+     clickable at that density, so a name per object was 10,884 strings nobody
+     ever read. Explore takes its labels from the sampled feed instead. */
   groups: Object.values(fleetAll.reduce((acc, o) => {
-    (acc[o.operator] ??= { o: o.operator, c: o.cls, b: o.built, s: [] })
-      .s.push([o.name, o.line1, o.line2]);
+    (acc[o.operator] ??= { o: o.operator, c: o.cls, s: [] })
+      .s.push([o.line1, o.line2]);
     return acc;
   }, {}))
 }) + '\n');

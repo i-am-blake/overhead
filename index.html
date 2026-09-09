@@ -2273,11 +2273,16 @@ async function loadFullSky(){
     /* Two shapes are accepted. The grouped form is current; the flat form is what
        the feed looked like before, and a page can deploy hours ahead of the next
        data refresh. Reading only the new one left All empty in that window. */
+    /* Three shapes are accepted, because a page can deploy hours before the next
+       data refresh: the current pair form [line1, line2], the earlier triple that
+       carried a name, and the original flat array. */
     const flat = j.groups
-      ? j.groups.flatMap(g => g.s.map(([nm, l1, l2]) =>
-          ({ name:nm || '', operator:g.o, cls:g.c, built:g.b || '', l1, l2 })))
+      ? j.groups.flatMap(g => g.s.map(r => {
+          const [l1, l2] = r.length === 3 ? [r[1], r[2]] : [r[0], r[1]];
+          return { name:'', operator:g.o, cls:g.c, built:'', l1, l2 };
+        }))
       : (j.objects || []).map(o =>
-          ({ name:o.n || '', operator:o.o, cls:o.c, built:o.b || '', l1:o.l1, l2:o.l2 }));
+          ({ name:'', operator:o.o, cls:o.c, built:'', l1:o.l1, l2:o.l2 }));
 
     /* Building 10,884 satrecs in one pass locks the main thread for a beat.
        Chunk it across animation frames so a background preload costs nothing
