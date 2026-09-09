@@ -479,8 +479,11 @@ tbody tr.expand > td{
   background:rgba(34,224,255,.04);
 }
 .xtext{
+  /* Full width of the table. A measure cap belongs on a column of body text, not
+     on two sentences sitting inside a row — capped, it left a long empty gutter
+     to the right and the paragraph looked detached from the row above it. */
   font-size:var(--fs-4);line-height:1.7;color:var(--dim);
-  max-width:74ch;margin:2px 0 13px;letter-spacing:var(--ls-1);
+  margin:2px 0 13px;letter-spacing:var(--ls-1);
 }
 .dwatch{border-color:var(--sodium);color:var(--sodium)}
 .dwatch:hover{background:var(--sodium);color:var(--void)}
