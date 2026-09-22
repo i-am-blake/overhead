@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-22T22:02:23.926Z",
+ "generated": "2026-09-22T22:08:02.895Z",
  "source": "CelesTrak GP active catalog (celestrak.org), fetched daily",
  "demo": false,
  "report": [
@@ -88,8 +88,8 @@
   "count": 10901,
   "dated": 10901,
   "combinedSpeedKmS": 83128.82675866995,
-  "distanceKm": 5785405361547.499,
-  "asOf": "2026-09-22T22:02:23.889Z",
+  "distanceKm": 5785433539060.912,
+  "asOf": "2026-09-22T22:08:02.851Z",
   "catalogPayloads": 16585,
   "catalogTotal": 16587,
   "sharePct": 65.72806753090141,
